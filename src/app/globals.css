@@ -1,36 +1,33 @@
 @import "tailwindcss";
 
-:root {
-  --bg: #f1f5f9;
-  --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --brand: #4f46e5;
+/* Force a light theme: dark: only applies under an explicit .dark class,
+   which we never add — so the app is always light. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Rebrand the accent to the organization logo's vermilion/saffron by
+   remapping the palette the UI already uses (indigo → brand). No component
+   changes needed; opacity variants derive from the 500 value. */
+@theme {
+  --color-indigo-50: #fff4ef;
+  --color-indigo-100: #ffe3d6;
+  --color-indigo-200: #ffcbb2;
+  --color-indigo-300: #ffab86;
+  --color-indigo-400: #fb7c4d;
+  --color-indigo-500: #f2531b;
+  --color-indigo-600: #e0400f;
+  --color-indigo-700: #b8330d;
+  --color-indigo-800: #932a0e;
+  --color-indigo-900: #7a2611;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1120;
-    --surface: #111827;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #1f2937;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0b1120;
-  --surface: #111827;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --border: #1f2937;
-}
-:root[data-theme="light"] {
-  --bg: #f1f5f9;
+:root {
+  color-scheme: light;
+  --bg: #f8f5f2;
   --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  --text: #1c1917;
+  --muted: #78716c;
+  --border: #eee7e0;
+  --brand: #e0400f;
 }
 
 html,
@@ -46,20 +43,19 @@ body {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #d6cfc8 transparent;
 }
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d6cfc8;
   border-radius: 9999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
-/* numeric alignment for money columns */
 .tabular {
   font-variant-numeric: tabular-nums;
 }

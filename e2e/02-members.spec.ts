@@ -17,7 +17,7 @@ test("create, search, view, edit and void a member", async ({ page }) => {
   await expect(page.getByRole("link", { name })).toBeVisible();
 
   // Search
-  await page.getByPlaceholder(/search/i).fill(name);
+  await page.getByPlaceholder(/search name/i).fill(name);
   await page.getByRole("button", { name: /^Search$/ }).click();
   await expect(page.getByRole("link", { name })).toBeVisible();
 

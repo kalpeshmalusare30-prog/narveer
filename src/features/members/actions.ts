@@ -5,6 +5,7 @@ import { withAction } from "@/lib/rbac/guard";
 import { writeAudit } from "@/lib/audit/audit";
 import { nextMemberCode } from "@/lib/membercode/generate";
 import { memberInput, type MemberInput } from "./schema";
+import { notify } from "@/lib/notify/notify";
 
 function toDate(v?: string | null): Date | null {
   if (!v) return null;
@@ -53,6 +54,7 @@ export async function createMember(input: MemberInput) {
       recordId: member.id,
       newValue: { fullName: member.fullName, memberCode },
     });
+    await notify("member", `New member added: ${member.fullName} (${memberCode})`);
     return member;
   });
 }

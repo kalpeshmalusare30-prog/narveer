@@ -6,6 +6,8 @@ import { Nav } from "./Nav";
 import { Branding } from "./Branding";
 import { LocaleToggle } from "./LocaleToggle";
 import { LogoutButton } from "./LogoutButton";
+import { SearchBox } from "./SearchBox";
+import { NotificationBell } from "./NotificationBell";
 
 function initials(name: string) {
   return (
@@ -25,6 +27,8 @@ export function ShellChrome({
   userName,
   permissions,
   isSuperAdmin,
+  showBell,
+  notifCount,
   children,
 }: {
   orgName: string;
@@ -32,32 +36,37 @@ export function ShellChrome({
   userName: string;
   permissions: string[];
   isSuperAdmin: boolean;
+  showBell: boolean;
+  notifCount: number;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
 
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto p-4">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
       <div className="px-1 pt-1">
         <Branding name={orgName} logoUrl={logoUrl} />
       </div>
+      <SearchBox onNavigate={close} />
       <Nav
         permissions={permissions}
         isSuperAdmin={isSuperAdmin}
-        onNavigate={() => setOpen(false)}
+        onNavigate={close}
       />
-      <div className="mt-auto flex flex-col gap-3 border-t border-slate-200 pt-3 dark:border-slate-700">
+      <div className="mt-auto flex flex-col gap-3 border-t border-slate-200 pt-3">
         <LocaleToggle />
         <div className="flex items-center gap-2.5 px-1">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
             {initials(userName)}
           </div>
           <div
-            className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700 dark:text-slate-200"
+            className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700"
             data-testid="current-user"
           >
             {userName}
           </div>
+          {showBell && <NotificationBell count={notifCount} onNavigate={close} />}
         </div>
         <LogoutButton />
       </div>
@@ -67,7 +76,7 @@ export function ShellChrome({
   return (
     <div className="min-h-screen">
       {/* Mobile top bar */}
-      <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:hidden dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -76,11 +85,14 @@ export function ShellChrome({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Branding name={orgName} logoUrl={logoUrl} />
+        <div className="flex-1">
+          <Branding name={orgName} logoUrl={logoUrl} />
+        </div>
+        {showBell && <NotificationBell count={notifCount} />}
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-white lg:block dark:border-slate-700 dark:bg-slate-800">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-white lg:block">
         {sidebar}
       </aside>
 
@@ -89,13 +101,13 @@ export function ShellChrome({
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
+            onClick={close}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl dark:bg-slate-800">
+          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl">
             <div className="flex justify-end p-2">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={close}
                 aria-label="Close menu"
                 className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
               >

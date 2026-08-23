@@ -20,6 +20,7 @@ import {
   Wrench,
   Building2,
   Upload,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,6 +74,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { href: "/users", labelKey: "users", icon: UserCog, permission: "user.view" },
       { href: "/roles", labelKey: "roles", icon: Shield, permission: "role.view" },
+      { href: "/notifications", labelKey: "notifications", icon: Bell, permission: "notification.view" },
       { href: "/audit", labelKey: "auditLogs", icon: History, permission: "audit.view" },
       { href: "/import", labelKey: "import", icon: Upload, permission: "data.import" },
       { href: "/settings", labelKey: "settings", icon: Settings, permission: "settings.membership_type.manage" },

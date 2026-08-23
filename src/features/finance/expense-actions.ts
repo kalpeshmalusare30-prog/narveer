@@ -4,7 +4,8 @@ import { z } from "zod";
 import { db } from "@/lib/db/prisma";
 import { withAction } from "@/lib/rbac/guard";
 import { writeAudit } from "@/lib/audit/audit";
-import { parseAmount } from "@/lib/money/money";
+import { formatINR, parseAmount } from "@/lib/money/money";
+import { notify } from "@/lib/notify/notify";
 
 const expenseInput = z.object({
   amount: z.string(),
@@ -43,6 +44,10 @@ export async function createExpense(input: ExpenseInput) {
       recordId: expense.id,
       newValue: { amount: amount.toString() },
     });
+    await notify(
+      "expense",
+      `Expense of ${formatINR(amount.toString())} recorded${data.paidTo ? ` (${data.paidTo})` : ""}`,
+    );
     return expense;
   });
 }

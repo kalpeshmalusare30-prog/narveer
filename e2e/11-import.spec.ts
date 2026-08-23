@@ -30,7 +30,7 @@ test("CSV member import: preview then commit", async ({ page }) => {
 
   // Verify in members list
   await page.goto("/members");
-  await page.getByPlaceholder(/search/i).fill(`Import Alice ${stamp}`);
+  await page.getByPlaceholder(/search name/i).fill(`Import Alice ${stamp}`);
   await page.getByRole("button", { name: /^Search$/ }).click();
   await expect(
     page.getByRole("link", { name: `Import Alice ${stamp}` }),

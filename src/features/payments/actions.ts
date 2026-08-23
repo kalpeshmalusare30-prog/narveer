@@ -7,6 +7,8 @@ import { withAction } from "@/lib/rbac/guard";
 import { writeAudit } from "@/lib/audit/audit";
 import { nextReceiptNumber } from "@/lib/receiptnumber/generate";
 import { feePending, deriveStatus, isManualZeroStatus } from "@/lib/finance/calc";
+import { notify } from "@/lib/notify/notify";
+import { formatINR } from "@/lib/money/money";
 
 const paymentSchema = z.object({
   memberId: z.string().min(1),
@@ -117,6 +119,10 @@ export async function recordPayment(input: RecordPaymentInput) {
       recordId: payment.id,
       newValue: { amount: amount.toString(), receiptNumber },
     });
+    await notify(
+      "payment",
+      `Payment of ${formatINR(amount.toString())} received from ${member.fullName} (${receiptNumber})`,
+    );
     return { paymentId: payment.id, receiptId: receipt.id, receiptNumber };
   });
 }

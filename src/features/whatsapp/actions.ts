@@ -8,6 +8,7 @@ import { writeAudit } from "@/lib/audit/audit";
 import { getProvider, renderTemplate } from "@/lib/whatsapp";
 import { feePending } from "@/lib/finance/calc";
 import { formatINR } from "@/lib/money/money";
+import { notify } from "@/lib/notify/notify";
 
 async function getTemplateBody(type: string): Promise<string | null> {
   const tpl = await db.whatsAppTemplate.findFirst({
@@ -104,6 +105,12 @@ async function recordAndSend(
     recordId: msg.id,
     newValue: { type: input.type, status },
   });
+  if (status === "Failed") {
+    await notify(
+      "whatsapp_failed",
+      `WhatsApp ${input.type} to ${input.toNumber} failed: ${failureReason ?? "error"}`,
+    );
+  }
   return { id: msg.id, status, failureReason, configured: !!provider };
 }
 

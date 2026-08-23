@@ -68,7 +68,20 @@
     "whatsapp": "WhatsApp",
     "reports": "Reports",
     "auditLogs": "Audit Logs",
-    "import": "Import Data"
+    "import": "Import Data",
+    "notifications": "Notifications"
+  },
+  "search": {
+    "placeholder": "Search members, receipts…",
+    "title": "Search",
+    "members": "Members",
+    "receipts": "Receipts",
+    "noResults": "No matches found."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "none": "No notifications yet."
   },
   "import": {
     "title": "Import Data",

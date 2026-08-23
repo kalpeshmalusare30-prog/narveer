@@ -68,7 +68,20 @@
     "whatsapp": "व्हॉट्सअ‍ॅप",
     "reports": "अहवाल",
     "auditLogs": "नोंद इतिहास",
-    "import": "डेटा आयात"
+    "import": "डेटा आयात",
+    "notifications": "सूचना"
+  },
+  "search": {
+    "placeholder": "सभासद, पावत्या शोधा…",
+    "title": "शोध",
+    "members": "सभासद",
+    "receipts": "पावत्या",
+    "noResults": "काहीही आढळले नाही."
+  },
+  "notifications": {
+    "title": "सूचना",
+    "markAllRead": "सर्व वाचले म्हणून चिन्हांकित करा",
+    "none": "अद्याप सूचना नाहीत."
   },
   "import": {
     "title": "डेटा आयात",

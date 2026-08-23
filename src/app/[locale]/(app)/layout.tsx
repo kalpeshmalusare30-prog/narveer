@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { rawDb } from "@/lib/db/raw";
 import { storage } from "@/lib/storage";
 import { AppShell } from "@/components/shell/AppShell";
+import { unreadNotificationCount } from "@/features/notifications/query";
 
 // All authenticated pages depend on the per-request session; never prerender.
 export const dynamic = "force-dynamic";
@@ -36,6 +37,9 @@ export default async function AppLayout({
     orgName = t("name");
   }
 
+  const showBell = user!.permissions.includes("notification.view");
+  const notifCount = showBell ? await unreadNotificationCount() : 0;
+
   return (
     <AppShell
       orgName={orgName}
@@ -43,6 +47,8 @@ export default async function AppLayout({
       userName={user!.fullName}
       permissions={user!.permissions}
       isSuperAdmin={user!.isSuperAdmin}
+      showBell={showBell}
+      notifCount={notifCount}
     >
       {children}
     </AppShell>

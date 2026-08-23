@@ -163,11 +163,22 @@ reporting, then a commit. Fees import auto-creates the financial year and record
 an opening-balance payment so pending stays correct; payments import auto-allocates
 oldest-dues-first. Under **Import Data** (permission `data.import`).
 
+## Search, notifications & theme (delivered)
+
+- **Global search** (§27): sidebar search across members (name/code/mobile) and
+  receipts, permission‑aware, with a grouped results page.
+- **Notifications** (§28): in‑app feed generated on real events (payment
+  received, new member, expense recorded, WhatsApp failure) with an unread bell
+  badge and mark‑all‑read.
+- **Theme:** forced light theme; the accent palette is rebranded to the
+  organization logo's vermilion/saffron (single source in `globals.css`).
+
 ## Roadmap (remaining)
 
-- Notifications feed (§28) and global cross-module search (§27) — models are in
-  place; UI is minimal.
-- WhatsApp delivery-status webhooks (Sent → Delivered → Read).
+- WhatsApp delivery-status webhooks (Sent → Delivered → Read) — outbound
+  sending is real once credentials are configured; inbound status callbacks are
+  not wired yet.
+- Real-time push for notifications (currently refreshed per navigation).
 - **Phase 4 — Money & Insight:** income, expenses, dashboard, reports
   (PDF/Excel), search & filters, notifications.
 - **Phase 5 — Data & Governance:** Excel/CSV import (validation + dedup),

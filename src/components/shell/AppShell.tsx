@@ -7,6 +7,8 @@ export function AppShell({
   userName,
   permissions,
   isSuperAdmin,
+  showBell,
+  notifCount,
   children,
 }: {
   orgName: string;
@@ -14,6 +16,8 @@ export function AppShell({
   userName: string;
   permissions: string[];
   isSuperAdmin: boolean;
+  showBell: boolean;
+  notifCount: number;
   children: ReactNode;
 }) {
   return (
@@ -23,6 +27,8 @@ export function AppShell({
       userName={userName}
       permissions={permissions}
       isSuperAdmin={isSuperAdmin}
+      showBell={showBell}
+      notifCount={notifCount}
     >
       {children}
     </ShellChrome>
