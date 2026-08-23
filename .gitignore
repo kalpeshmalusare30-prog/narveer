@@ -12,6 +12,7 @@ build
 *.log
 /test-results
 /playwright-report
+/screenshots
 /playwright/.cache
 next-env.d.ts
 .superpowers
