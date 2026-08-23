@@ -129,6 +129,15 @@ export async function seed(): Promise<void> {
       create: { organizationId: org.id, name: s.name, isTerminal: s.isTerminal },
     });
   }
+
+  // 7. Default payment modes
+  for (const name of ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"]) {
+    await db.paymentMode.upsert({
+      where: { organizationId_name: { organizationId: org.id, name } },
+      update: {},
+      create: { organizationId: org.id, name },
+    });
+  }
 }
 
 // Run only when invoked directly (tsx prisma/seed.ts), not when imported by tests.

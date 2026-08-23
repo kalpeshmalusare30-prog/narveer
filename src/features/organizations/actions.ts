@@ -65,6 +65,11 @@ export async function createOrganization(input: OrgInput) {
         },
       });
     }
+    for (const name of ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"]) {
+      await rawDb.paymentMode.create({
+        data: { organizationId: org.id, name },
+      });
+    }
     await writeAudit({
       action: "create",
       module: "organizations",

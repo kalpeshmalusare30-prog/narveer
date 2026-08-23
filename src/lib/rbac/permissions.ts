@@ -15,7 +15,17 @@ export const PERMISSIONS = [
   "settings.org.manage",
   "settings.membership_type.manage",
   "settings.member_status.manage",
+  "settings.payment_mode.manage",
   "audit.view",
+  "financialyear.view",
+  "financialyear.manage",
+  "fee.view",
+  "fee.assign",
+  "fee.waive",
+  "payment.view",
+  "payment.create",
+  "payment.void",
+  "receipt.view",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];

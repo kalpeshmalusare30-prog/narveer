@@ -26,17 +26,24 @@ model Organization {
   receiptNumberPrefix  String   @default("RCPT")
   memberCodePrefix     String   @default("M")
   memberCodeSeq        Int      @default(0)
+  receiptSeq           Int      @default(0)
   defaultLocale        String   @default("en")
   setupCompleted       Boolean  @default(false)
   isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  users           User[]
-  roles           Role[]
-  members         Member[]
-  membershipTypes MembershipType[]
-  memberStatuses  MemberStatus[]
+  users              User[]
+  roles              Role[]
+  members            Member[]
+  membershipTypes    MembershipType[]
+  memberStatuses     MemberStatus[]
+  financialYears     FinancialYear[]
+  paymentModes       PaymentMode[]
+  annualFees         AnnualFee[]
+  payments           Payment[]
+  paymentAllocations PaymentAllocation[]
+  receipts           Receipt[]
 
   @@unique([shortName])
 }
@@ -156,6 +163,10 @@ model Member {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
+  annualFees AnnualFee[]
+  payments   Payment[]
+  receipts   Receipt[]
+
   @@unique([organizationId, memberCode])
   @@index([organizationId])
   @@index([organizationId, fullName])
@@ -178,4 +189,115 @@ model AuditLog {
 
   @@index([organizationId])
   @@index([recordType, recordId])
+}
+
+model FinancialYear {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  label          String
+  startDate      DateTime
+  endDate        DateTime
+  feeAmount      Decimal      @default(0) @db.Decimal(12, 2)
+  isActive       Boolean      @default(true)
+  isClosed       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  annualFees AnnualFee[]
+
+  @@unique([organizationId, label])
+  @@index([organizationId])
+}
+
+model PaymentMode {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  isActive       Boolean      @default(true)
+  payments       Payment[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model AnnualFee {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  memberId        String
+  member          Member        @relation(fields: [memberId], references: [id])
+  financialYearId String
+  financialYear   FinancialYear @relation(fields: [financialYearId], references: [id])
+  feeAmount       Decimal       @db.Decimal(12, 2)
+  status          String        @default("Pending")
+  notes           String?
+  createdBy       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  allocations PaymentAllocation[]
+
+  @@unique([organizationId, memberId, financialYearId])
+  @@index([organizationId])
+  @@index([memberId])
+  @@index([financialYearId])
+}
+
+model Payment {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  memberId        String
+  member          Member       @relation(fields: [memberId], references: [id])
+  paymentDate     DateTime     @default(now())
+  amount          Decimal      @db.Decimal(12, 2)
+  paymentModeId   String
+  paymentMode     PaymentMode  @relation(fields: [paymentModeId], references: [id])
+  referenceNumber String?
+  collectedBy     String?
+  notes           String?
+  isVoided        Boolean      @default(false)
+  voidedReason    String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  allocations PaymentAllocation[]
+  receipt     Receipt?
+
+  @@index([organizationId])
+  @@index([memberId])
+}
+
+model PaymentAllocation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  paymentId      String
+  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  annualFeeId    String
+  annualFee      AnnualFee    @relation(fields: [annualFeeId], references: [id])
+  amount         Decimal      @db.Decimal(12, 2)
+
+  @@index([organizationId])
+  @@index([paymentId])
+  @@index([annualFeeId])
+}
+
+model Receipt {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  receiptNumber  String
+  paymentId      String       @unique
+  payment        Payment      @relation(fields: [paymentId], references: [id])
+  memberId       String
+  member         Member       @relation(fields: [memberId], references: [id])
+  receiptDate    DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, receiptNumber])
+  @@index([organizationId])
+  @@index([memberId])
 }

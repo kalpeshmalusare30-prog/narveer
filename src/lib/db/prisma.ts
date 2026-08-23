@@ -10,6 +10,12 @@ const TENANT_MODELS = new Set([
   "MemberStatus",
   "Role",
   "AuditLog",
+  "FinancialYear",
+  "PaymentMode",
+  "AnnualFee",
+  "Payment",
+  "PaymentAllocation",
+  "Receipt",
 ]);
 
 const WHERE_OPS = new Set([

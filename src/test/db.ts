@@ -4,6 +4,12 @@ import { PrismaClient } from "@prisma/client";
 export const testDb = new PrismaClient();
 
 const TABLES = [
+  "Receipt",
+  "PaymentAllocation",
+  "Payment",
+  "PaymentMode",
+  "AnnualFee",
+  "FinancialYear",
   "AuditLog",
   "UserRole",
   "RolePermission",
