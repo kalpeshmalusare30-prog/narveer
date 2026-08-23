@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import {
   toggleMembershipTypeAction,
   toggleMemberStatusAction,
+  togglePaymentModeAction,
 } from "@/features/settings/config-actions";
 
 export function ConfigActiveToggle({
@@ -15,7 +16,7 @@ export function ConfigActiveToggle({
 }: {
   id: string;
   active: boolean;
-  kind: "type" | "status";
+  kind: "type" | "status" | "paymentMode";
 }) {
   const t = useTranslations("common");
   const router = useRouter();
@@ -27,6 +28,8 @@ export function ConfigActiveToggle({
       onClick={() =>
         start(async () => {
           if (kind === "type") await toggleMembershipTypeAction(id, !active);
+          else if (kind === "paymentMode")
+            await togglePaymentModeAction(id, !active);
           else await toggleMemberStatusAction(id, !active);
           router.refresh();
         })

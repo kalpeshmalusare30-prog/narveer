@@ -2,8 +2,11 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getMember } from "@/features/members/query";
 import { getSessionUser } from "@/lib/auth/session";
+import { listMemberFees, getMemberTotalPending } from "@/features/finance/fee-query";
+import { listMemberPayments } from "@/features/payments/query";
 import { Link } from "@/i18n/navigation";
 import { PageHeader, Card, Badge, Button } from "@/components/ui";
+import { formatINR } from "@/lib/money/money";
 import { ProfileTabs } from "@/features/members/components/ProfileTabs";
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -30,8 +33,20 @@ export default async function MemberProfilePage({
 
   const user = await getSessionUser();
   const canEdit = !!user?.permissions.includes("member.edit");
+  const canViewFees = !!user?.permissions.includes("fee.view");
+  const canViewPayments = !!user?.permissions.includes("payment.view");
+  const canViewReceipts = !!user?.permissions.includes("receipt.view");
   const fmtDate = (d?: Date | null) =>
     d ? new Date(d).toLocaleDateString("en-IN") : "";
+
+  const feeRows = canViewFees ? await listMemberFees(member!.id) : [];
+  const totalPending = canViewFees
+    ? await getMemberTotalPending(member!.id)
+    : "0";
+  const payments = canViewPayments
+    ? await listMemberPayments(member!.id)
+    : [];
+  const pfx = locale === "en" ? "" : `/${locale}`;
 
   const personal = (
     <Card>
@@ -58,6 +73,107 @@ export default async function MemberProfilePage({
     </Card>
   );
 
+  const annualFeesNode = canViewFees ? (
+    <Card>
+      <div className="mb-3 text-sm">
+        {t("finance.totalPending")}:{" "}
+        <span className="font-semibold text-red-600">
+          {formatINR(totalPending)}
+        </span>
+      </div>
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs uppercase text-slate-500">
+          <tr>
+            <th className="py-1">{t("finance.yearDetail")}</th>
+            <th className="py-1">{t("finance.feeAmount")}</th>
+            <th className="py-1">{t("finance.collected")}</th>
+            <th className="py-1">{t("finance.pending")}</th>
+            <th className="py-1">{t("finance.feeStatus")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {feeRows.map((f) => (
+            <tr key={f.id} className="border-t border-slate-100">
+              <td className="py-1">{f.yearLabel}</td>
+              <td className="py-1">{formatINR(f.feeAmount)}</td>
+              <td className="py-1">{formatINR(f.paid)}</td>
+              <td className="py-1">{formatINR(f.pending)}</td>
+              <td className="py-1">
+                <Badge tone={f.pending === "0" ? "green" : "amber"}>
+                  {f.status}
+                </Badge>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  ) : undefined;
+
+  const paymentsNode = canViewPayments ? (
+    <Card>
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs uppercase text-slate-500">
+          <tr>
+            <th className="py-1">{t("payments.date")}</th>
+            <th className="py-1">{t("payments.amount")}</th>
+            <th className="py-1">{t("payments.mode")}</th>
+            <th className="py-1">{t("payments.receiptNo")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payments.map((p) => (
+            <tr key={p.id} className="border-t border-slate-100">
+              <td className="py-1">
+                {new Date(p.paymentDate).toLocaleDateString("en-IN")}
+              </td>
+              <td className="py-1">
+                {formatINR(p.amount.toString())}
+                {p.isVoided && <Badge tone="red">{t("payments.voided")}</Badge>}
+              </td>
+              <td className="py-1">{p.paymentMode.name}</td>
+              <td className="py-1">{p.receipt?.receiptNumber ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  ) : undefined;
+
+  const receiptsNode = canViewReceipts ? (
+    <Card>
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs uppercase text-slate-500">
+          <tr>
+            <th className="py-1">{t("receipts.receiptNo")}</th>
+            <th className="py-1">{t("receipts.amount")}</th>
+            <th className="py-1">{t("common.actions")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payments
+            .filter((p) => p.receipt)
+            .map((p) => (
+              <tr key={p.id} className="border-t border-slate-100">
+                <td className="py-1 font-mono">{p.receipt!.receiptNumber}</td>
+                <td className="py-1">{formatINR(p.amount.toString())}</td>
+                <td className="py-1">
+                  <a
+                    href={`${pfx}/receipts/${p.receipt!.id}/pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-medium text-indigo-600 hover:underline"
+                  >
+                    {t("receipts.downloadPdf")}
+                  </a>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </Card>
+  ) : undefined;
+
   return (
     <div>
       <PageHeader
@@ -78,7 +194,13 @@ export default async function MemberProfilePage({
           {member!.status.name}
         </Badge>
       </div>
-      <ProfileTabs personal={personal} membership={membership} />
+      <ProfileTabs
+        personal={personal}
+        membership={membership}
+        annualFees={annualFeesNode}
+        payments={paymentsNode}
+        receipts={receiptsNode}
+      />
     </div>
   );
 }

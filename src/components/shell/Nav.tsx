@@ -14,6 +14,18 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", labelKey: "dashboard" },
   { href: "/members", labelKey: "members", permission: "member.view" },
   {
+    href: "/finance/years",
+    labelKey: "financeYears",
+    permission: "financialyear.view",
+  },
+  { href: "/payments", labelKey: "payments", permission: "payment.view" },
+  {
+    href: "/finance/pending",
+    labelKey: "pendingDues",
+    permission: "fee.view",
+  },
+  { href: "/receipts", labelKey: "receipts", permission: "receipt.view" },
+  {
     href: "/settings/membership-types",
     labelKey: "membershipTypes",
     permission: "settings.membership_type.manage",
@@ -22,6 +34,11 @@ const NAV_ITEMS: NavItem[] = [
     href: "/settings/member-statuses",
     labelKey: "memberStatuses",
     permission: "settings.member_status.manage",
+  },
+  {
+    href: "/settings/payment-modes",
+    labelKey: "paymentModes",
+    permission: "settings.payment_mode.manage",
   },
   { href: "/users", labelKey: "users", permission: "user.view" },
   { href: "/roles", labelKey: "roles", permission: "role.view" },

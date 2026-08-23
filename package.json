@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@react-pdf/renderer": "^4.7.0",
     "argon2": "^0.45.1",
     "next": "^15.5.23",
     "next-auth": "^5.0.0-beta.32",

@@ -13,3 +13,9 @@ export async function listMemberStatuses() {
     db.memberStatus.findMany({ orderBy: { name: "asc" } }),
   );
 }
+
+export async function listPaymentModes() {
+  return withAction({ permission: "settings.payment_mode.manage" }, async () =>
+    db.paymentMode.findMany({ orderBy: { name: "asc" } }),
+  );
+}

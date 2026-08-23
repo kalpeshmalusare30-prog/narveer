@@ -6,18 +6,32 @@ import { useTranslations } from "next-intl";
 export function ProfileTabs({
   personal,
   membership,
+  annualFees,
+  payments,
+  receipts,
 }: {
   personal: ReactNode;
   membership: ReactNode;
+  annualFees?: ReactNode;
+  payments?: ReactNode;
+  receipts?: ReactNode;
 }) {
   const t = useTranslations("members");
+  const content: Record<string, ReactNode | undefined> = {
+    personal,
+    membership,
+    annualFees,
+    payments,
+    receipts,
+    whatsappHistory: undefined,
+  };
   const tabs = [
-    { key: "personal", label: t("personal"), enabled: true },
-    { key: "membership", label: t("membership"), enabled: true },
-    { key: "annualFees", label: t("annualFees"), enabled: false },
-    { key: "payments", label: t("payments"), enabled: false },
-    { key: "receipts", label: t("receipts"), enabled: false },
-    { key: "whatsappHistory", label: t("whatsappHistory"), enabled: false },
+    { key: "personal", label: t("personal") },
+    { key: "membership", label: t("membership") },
+    { key: "annualFees", label: t("annualFees") },
+    { key: "payments", label: t("payments") },
+    { key: "receipts", label: t("receipts") },
+    { key: "whatsappHistory", label: t("whatsappHistory") },
   ];
   const [active, setActive] = useState("personal");
 
@@ -41,11 +55,7 @@ export function ProfileTabs({
         ))}
       </div>
       <div>
-        {active === "personal" && personal}
-        {active === "membership" && membership}
-        {["annualFees", "payments", "receipts", "whatsappHistory"].includes(
-          active,
-        ) && (
+        {content[active] ?? (
           <div
             className="rounded-md bg-slate-50 p-6 text-sm text-slate-500"
             data-testid="later-phase"

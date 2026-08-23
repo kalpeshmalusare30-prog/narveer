@@ -123,3 +123,53 @@ export async function toggleMembershipTypeAction(id: string, active: boolean) {
 export async function toggleMemberStatusAction(id: string, active: boolean) {
   await setMemberStatusActive(id, active);
 }
+
+// --- Payment modes ---
+
+export async function createPaymentMode(name: string) {
+  const data = nameInput.parse({ name });
+  return withAction({ permission: "settings.payment_mode.manage" }, async (ctx) => {
+    const existing = await db.paymentMode.findFirst({ where: { name: data.name } });
+    if (existing) throw new Error("DUPLICATE");
+    const created = await db.paymentMode.create({
+      data: { organizationId: ctx.organizationId, name: data.name },
+    });
+    await writeAudit({
+      action: "create",
+      module: "settings",
+      recordType: "PaymentMode",
+      recordId: created.id,
+      newValue: { name: data.name },
+    });
+    return created;
+  });
+}
+
+export async function setPaymentModeActive(id: string, active: boolean) {
+  return withAction({ permission: "settings.payment_mode.manage" }, async () => {
+    await db.paymentMode.update({ where: { id }, data: { isActive: active } });
+    await writeAudit({
+      action: "update",
+      module: "settings",
+      recordType: "PaymentMode",
+      recordId: id,
+      newValue: { isActive: active },
+    });
+  });
+}
+
+export async function createPaymentModeForm(
+  _prev: SaveState,
+  formData: FormData,
+): Promise<SaveState> {
+  try {
+    await createPaymentMode((formData.get("name") ?? "").toString());
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  return { success: true };
+}
+
+export async function togglePaymentModeAction(id: string, active: boolean) {
+  await setPaymentModeActive(id, active);
+}

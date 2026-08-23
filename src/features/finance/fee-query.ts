@@ -158,6 +158,24 @@ export async function getYearCollection(
   };
 }
 
+export async function listAssignableMembers(
+  financialYearId: string,
+): Promise<{ id: string; fullName: string; memberCode: string }[]> {
+  return withAction({ permission: "fee.assign" }, async () => {
+    const assigned = await db.annualFee.findMany({
+      where: { financialYearId },
+      select: { memberId: true },
+    });
+    const have = new Set(assigned.map((a) => a.memberId));
+    const members = await db.member.findMany({
+      where: { isActive: true },
+      select: { id: true, fullName: true, memberCode: true },
+      orderBy: { fullName: "asc" },
+    });
+    return members.filter((m) => !have.has(m.id));
+  });
+}
+
 export type PendingDuesRow = {
   memberId: string;
   memberName: string;

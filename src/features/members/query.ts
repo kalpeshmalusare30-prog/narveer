@@ -51,6 +51,18 @@ export async function getMember(id: string) {
   });
 }
 
+export async function listActiveMembers(): Promise<
+  { id: string; fullName: string; memberCode: string }[]
+> {
+  return withAction({ permission: "member.view" }, async () =>
+    db.member.findMany({
+      where: { isActive: true },
+      select: { id: true, fullName: true, memberCode: true },
+      orderBy: { fullName: "asc" },
+    }),
+  );
+}
+
 export async function getMemberRefData() {
   return withAction({ permission: "member.view" }, async () => {
     const [statuses, types] = await Promise.all([

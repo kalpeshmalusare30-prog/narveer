@@ -147,3 +147,11 @@ export async function voidPayment(id: string, reason?: string) {
 export async function voidPaymentAction(id: string, reason?: string) {
   await voidPayment(id, reason);
 }
+
+// Load a member's pending fees for the allocation UI (server action).
+export async function loadMemberPendingFees(memberId: string) {
+  const { getMemberPendingFees } = await import(
+    "@/features/finance/fee-query"
+  );
+  return getMemberPendingFees(memberId);
+}
