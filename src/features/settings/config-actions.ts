@@ -11,13 +11,13 @@ export async function createMembershipType(name: string) {
   const data = nameInput.parse({ name });
   return withAction(
     { permission: "settings.membership_type.manage" },
-    async () => {
+    async (ctx) => {
       const existing = await db.membershipType.findFirst({
         where: { name: data.name },
       });
       if (existing) throw new Error("DUPLICATE");
       const created = await db.membershipType.create({
-        data: { name: data.name },
+        data: { organizationId: ctx.organizationId, name: data.name },
       });
       await writeAudit({
         action: "create",
@@ -54,13 +54,13 @@ export async function createMemberStatus(name: string, isTerminal: boolean) {
   const data = nameInput.parse({ name });
   return withAction(
     { permission: "settings.member_status.manage" },
-    async () => {
+    async (ctx) => {
       const existing = await db.memberStatus.findFirst({
         where: { name: data.name },
       });
       if (existing) throw new Error("DUPLICATE");
       const created = await db.memberStatus.create({
-        data: { name: data.name, isTerminal },
+        data: { organizationId: ctx.organizationId, name: data.name, isTerminal },
       });
       await writeAudit({
         action: "create",

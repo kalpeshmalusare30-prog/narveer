@@ -5,9 +5,9 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
+// The app is session- and database-driven; render per request (never cache a
+// logged-out shell for a logged-in user).
+export const dynamic = "force-dynamic";
 
 export default async function LocaleLayout({
   children,

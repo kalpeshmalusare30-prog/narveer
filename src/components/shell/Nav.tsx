@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   { href: "/users", labelKey: "users", permission: "user.view" },
   { href: "/roles", labelKey: "roles", permission: "role.view" },
+  { href: "/setup", labelKey: "setup", permission: "settings.org.manage" },
   { href: "/organizations", labelKey: "organizations", superAdmin: true },
 ];
 

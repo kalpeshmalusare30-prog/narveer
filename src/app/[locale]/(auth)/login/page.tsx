@@ -4,6 +4,8 @@ import { getSessionUser } from "@/lib/auth/session";
 import { LoginForm } from "./LoginForm";
 import { Card } from "@/components/ui";
 
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage({
   params,
 }: {

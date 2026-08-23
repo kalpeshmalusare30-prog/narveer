@@ -6,6 +6,9 @@ import { rawDb } from "@/lib/db/raw";
 import { storage } from "@/lib/storage";
 import { AppShell } from "@/components/shell/AppShell";
 
+// All authenticated pages depend on the per-request session; never prerender.
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({
   children,
   params,
