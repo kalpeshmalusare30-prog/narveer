@@ -140,10 +140,27 @@ docs/superpowers/  design spec + implementation plan
 - Member profile Annual Fees / Payments / Receipts tabs are live.
 - Dashboard current-year collection tiles (expected / collected / pending / %).
 
-## Roadmap (later phases)
+## Phase 3 — Communication, Money & Reports + UI redesign (delivered)
 
-- **Phase 3 — Communication:** WhatsApp reminders, confirmations, receipt
-  sharing, message history, bulk sends.
+- Income & Expense management with categories; balance = (membership collection
+  + other income) − expenses; dashboard financial summary + quick actions.
+- WhatsApp: provider architecture (Meta Cloud API) with an explicit unconfigured
+  state, editable templates, reminder/confirmation/receipt/bulk sends, message
+  history + delivery/failure status. Configure under Settings → WhatsApp.
+- Reports: year-wise collection, payment modes, income/expense by category,
+  WhatsApp — with CSV export and print-to-PDF.
+- Audit-log viewer (`audit.view`); settings hub; income/expense category config.
+- Production UI redesign: icon sidebar (grouped, collapsible/responsive), stat
+  cards, refined tables, status badges, empty/loading/error states, redesigned
+  dashboard and member profile.
+- Security: `/api/files` now requires an authenticated session.
+
+## Roadmap (remaining)
+
+- Excel/CSV **import** of historical members/dues/payments (§30).
+- Notifications feed (§28) and global cross-module search (§27) — models are in
+  place; UI is minimal.
+- WhatsApp delivery-status webhooks (Sent → Delivered → Read).
 - **Phase 4 — Money & Insight:** income, expenses, dashboard, reports
   (PDF/Excel), search & filters, notifications.
 - **Phase 5 — Data & Governance:** Excel/CSV import (validation + dedup),
