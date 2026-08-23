@@ -124,10 +124,24 @@ e2e/               Playwright specs
 docs/superpowers/  design spec + implementation plan
 ```
 
+## Phase 2 — Core Financial (delivered)
+
+- Financial years (label, fee, auto-derived start/end, activate/close).
+- Annual fees: assign to all active members, bulk-select, or manually; fee
+  amount **snapshotted** at assignment; year-wise tracking of paid/pending/status
+  and historical multi-year dues; waive/exempt/cancel.
+- Configurable payment modes.
+- Payments with **multi-year allocation** (one payment split across years),
+  partial payments, over-allocation prevention, and **void that reverses
+  allocations** and restores pending.
+- **PDF receipts** (`/receipts/[id]/pdf`) via React-PDF with bundled Noto Sans
+  Devanagari — bilingual, downloadable, with per-year allocation lines.
+- Pending-dues list, payments list, receipts list.
+- Member profile Annual Fees / Payments / Receipts tabs are live.
+- Dashboard current-year collection tiles (expected / collected / pending / %).
+
 ## Roadmap (later phases)
 
-- **Phase 2 — Core Financial:** financial years, annual fee config/assignment,
-  year-wise tracking, historical dues, payments + allocation, receipts (PDF).
 - **Phase 3 — Communication:** WhatsApp reminders, confirmations, receipt
   sharing, message history, bulk sends.
 - **Phase 4 — Money & Insight:** income, expenses, dashboard, reports
