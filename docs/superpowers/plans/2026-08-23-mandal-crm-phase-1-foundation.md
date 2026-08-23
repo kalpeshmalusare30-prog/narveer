@@ -536,7 +536,7 @@ git add -A && git commit -m "feat(db): Phase-1 Prisma schema + test DB harness"
 - Produces:
   - `rawDb: PrismaClient` (unscoped singleton) — from `raw.ts`.
   - `runWithTenant<T>(ctx: {organizationId: string; userId?: string; isSuperAdmin?: boolean}, fn: () => Promise<T>): Promise<T>` and `getTenant(): TenantContext | undefined` — from `tenant-context.ts`.
-  - `db` (extended client) — auto-injects `organizationId` for **tenant models**: `Member, MembershipType, MemberStatus, Role, UserRole, AuditLog`. Reads without a tenant context throw for tenant models.
+  - `db` (extended client) — auto-injects `organizationId` for **tenant models**: `Member, MembershipType, MemberStatus, Role, AuditLog`. (`UserRole` and `RolePermission` are NOT tenant models — they have no `organizationId` column and are scoped transitively via their parent `User`/`Role`.) Reads without a tenant context throw for tenant models.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -603,8 +603,11 @@ export function runWithTenant<T>(ctx: TenantContext, fn: () => Promise<T>): Prom
 import { rawDb } from "./raw";
 import { getTenant } from "./tenant-context";
 
-const TENANT_MODELS = new Set(["Member","MembershipType","MemberStatus","Role","UserRole","AuditLog"]);
-const READ_OPS = new Set(["findFirst","findMany","findUnique","count","aggregate","groupBy","updateMany","deleteMany"]);
+// Models with an organizationId column. UserRole/RolePermission are excluded
+// (no organizationId; scoped via parent). Prisma 6 extendedWhereUnique (GA)
+// permits injecting organizationId into findUnique/update/delete where clauses.
+const TENANT_MODELS = new Set(["Member","MembershipType","MemberStatus","Role","AuditLog"]);
+const READ_OPS = new Set(["findFirst","findMany","findUnique","findUniqueOrThrow","findFirstOrThrow","count","aggregate","groupBy","updateMany","deleteMany"]);
 const WRITE_CREATE = new Set(["create","createMany"]);
 
 export const db = rawDb.$extends({
