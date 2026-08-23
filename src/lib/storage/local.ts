@@ -7,7 +7,11 @@ export class LocalStorageProvider implements StorageProvider {
     private baseDir = process.env.STORAGE_LOCAL_DIR ?? "./uploads",
   ) {}
 
-  async save(key: string, data: Buffer): Promise<string> {
+  async save(
+    key: string,
+    data: Buffer,
+    _contentType?: string,
+  ): Promise<string> {
     const full = path.join(this.baseDir, key);
     await mkdir(path.dirname(full), { recursive: true });
     await writeFile(full, data);

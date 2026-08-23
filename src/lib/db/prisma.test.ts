@@ -19,24 +19,27 @@ test("scoped client isolates orgs and injects organizationId", async () => {
     data: { organizationId: b.id, name: "Active" },
   });
 
+  // Deliberately omit organizationId to prove the extension injects it.
   await runWithTenant({ organizationId: a.id }, async () => {
     await db.member.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: {
         memberCode: "M0001",
         fullName: "Alice",
         mobile: "1",
         statusId: statusA.id,
-      },
+      } as any,
     });
   });
   await runWithTenant({ organizationId: b.id }, async () => {
     await db.member.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: {
         memberCode: "M0001",
         fullName: "Bob",
         mobile: "2",
         statusId: statusB.id,
-      },
+      } as any,
     });
   });
 

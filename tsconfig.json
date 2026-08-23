@@ -14,9 +14,16 @@
     "jsx": "preserve",
     "incremental": true,
     "plugins": [{ "name": "next" }],
-    "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".localpg", "uploads", "uploads-test", "e2e"]
+  "exclude": [
+    "node_modules",
+    ".localpg",
+    "uploads",
+    "uploads-test",
+    "e2e",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
 }
