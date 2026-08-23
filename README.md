@@ -155,9 +155,16 @@ docs/superpowers/  design spec + implementation plan
   dashboard and member profile.
 - Security: `/api/files` now requires an authenticated session.
 
+## Data import (delivered)
+
+Excel/CSV import (§30) for **members, historical fees, and historical payments**
+with a validate-first **dry-run preview**, per-row duplicate detection and error
+reporting, then a commit. Fees import auto-creates the financial year and records
+an opening-balance payment so pending stays correct; payments import auto-allocates
+oldest-dues-first. Under **Import Data** (permission `data.import`).
+
 ## Roadmap (remaining)
 
-- Excel/CSV **import** of historical members/dues/payments (§30).
 - Notifications feed (§28) and global cross-module search (§27) — models are in
   place; UI is minimal.
 - WhatsApp delivery-status webhooks (Sent → Delivered → Read).

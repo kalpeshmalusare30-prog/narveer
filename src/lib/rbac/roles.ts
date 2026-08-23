@@ -43,6 +43,7 @@ export const SYSTEM_ROLES: {
       "whatsapp.view",
       "whatsapp.send",
       "notification.view",
+      "data.import",
     ],
   },
   {

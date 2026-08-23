@@ -67,7 +67,32 @@
     "expenses": "खर्च",
     "whatsapp": "व्हॉट्सअ‍ॅप",
     "reports": "अहवाल",
-    "auditLogs": "नोंद इतिहास"
+    "auditLogs": "नोंद इतिहास",
+    "import": "डेटा आयात"
+  },
+  "import": {
+    "title": "डेटा आयात",
+    "type": "काय आयात करायचे",
+    "members": "सभासद",
+    "fees": "जुनी वर्गणी",
+    "payments": "जुनी देयके",
+    "selectFile": "CSV किंवा Excel फाइल",
+    "preview": "पूर्वावलोकन",
+    "import": "आयात करा",
+    "reset": "पुन्हा सुरू करा",
+    "total": "एकूण ओळी",
+    "ok": "वैध",
+    "duplicates": "डुप्लिकेट",
+    "errors": "त्रुटी",
+    "imported": "आयात केले",
+    "row": "ओळ",
+    "status": "स्थिती",
+    "message": "तपशील",
+    "previewNote": "पूर्वावलोकन प्रत्येक ओळ तपासते व डुप्लिकेट शोधते. आयात क्लिक करेपर्यंत काहीही जतन होत नाही.",
+    "importedNote": "आयात पूर्ण झाले.",
+    "membersHint": "स्तंभ: Name, Mobile, Status (पर्यायी: Member ID, Address, Area, WhatsApp, Email, Membership Type)",
+    "feesHint": "स्तंभ: Mobile किंवा Member ID, Financial Year, Fee Amount, Paid Amount",
+    "paymentsHint": "स्तंभ: Mobile किंवा Member ID, Amount, Date, Payment Mode, Reference"
   },
   "dashboard": {
     "title": "डॅशबोर्ड",

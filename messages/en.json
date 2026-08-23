@@ -67,7 +67,32 @@
     "expenses": "Expenses",
     "whatsapp": "WhatsApp",
     "reports": "Reports",
-    "auditLogs": "Audit Logs"
+    "auditLogs": "Audit Logs",
+    "import": "Import Data"
+  },
+  "import": {
+    "title": "Import Data",
+    "type": "What to import",
+    "members": "Members",
+    "fees": "Historical Fees",
+    "payments": "Historical Payments",
+    "selectFile": "CSV or Excel file",
+    "preview": "Preview",
+    "import": "Import",
+    "reset": "Start over",
+    "total": "Total rows",
+    "ok": "Valid",
+    "duplicates": "Duplicates",
+    "errors": "Errors",
+    "imported": "Imported",
+    "row": "Row",
+    "status": "Status",
+    "message": "Detail",
+    "previewNote": "Preview validates every row and detects duplicates. Nothing is saved until you click Import.",
+    "importedNote": "Import complete.",
+    "membersHint": "Columns: Name, Mobile, Status (optional: Member ID, Address, Area, WhatsApp, Email, Membership Type)",
+    "feesHint": "Columns: Mobile or Member ID, Financial Year, Fee Amount, Paid Amount",
+    "paymentsHint": "Columns: Mobile or Member ID, Amount, Date, Payment Mode, Reference"
   },
   "dashboard": {
     "title": "Dashboard",
