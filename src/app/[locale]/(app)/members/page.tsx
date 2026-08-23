@@ -2,9 +2,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { listMembers, getMemberRefData } from "@/features/members/query";
 import { Link } from "@/i18n/navigation";
-import { PageHeader, Button, Badge } from "@/components/ui";
+import { PageHeader, Button, StatusBadge } from "@/components/ui";
 import { MemberFilters } from "@/features/members/components/MemberFilters";
-import { VoidMemberButton } from "@/features/members/components/VoidMemberButton";
 
 export default async function MembersPage({
   params,
@@ -21,7 +20,6 @@ export default async function MembersPage({
   const user = await getSessionUser();
   const canCreate = !!user?.permissions.includes("member.create");
   const canEdit = !!user?.permissions.includes("member.edit");
-  const canVoid = !!user?.permissions.includes("member.void");
 
   const page = Number(sp.page ?? "1") || 1;
   const { rows, total, pageSize } = await listMembers({
@@ -94,14 +92,20 @@ export default async function MembersPage({
                       {m.fullName}
                     </Link>
                   </td>
-                  <td className="px-4 py-2">{m.mobile}</td>
-                  <td className="px-4 py-2">
-                    <Badge tone={m.isActive ? "green" : "slate"}>
-                      {m.status.name}
-                    </Badge>
+                  <td className="px-4 py-2 tabular text-slate-600 dark:text-slate-300">
+                    {m.mobile || "—"}
                   </td>
                   <td className="px-4 py-2">
-                    <div className="flex gap-3">
+                    <StatusBadge status={m.status.name} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex gap-4">
+                      <Link
+                        className="text-xs font-medium text-indigo-600 hover:underline"
+                        href={`/members/${m.id}`}
+                      >
+                        {t("common.view")}
+                      </Link>
                       {canEdit && (
                         <Link
                           className="text-xs font-medium text-indigo-600 hover:underline"
@@ -110,7 +114,6 @@ export default async function MembersPage({
                           {t("common.edit")}
                         </Link>
                       )}
-                      {canVoid && m.isActive && <VoidMemberButton id={m.id} />}
                     </div>
                   </td>
                 </tr>

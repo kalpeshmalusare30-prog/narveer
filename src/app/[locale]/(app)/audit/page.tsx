@@ -38,11 +38,11 @@ export default async function AuditPage({
         <Table>
           <THead>
             <TR>
-              <TH>Date / Time</TH>
-              <TH>User</TH>
-              <TH>Module</TH>
-              <TH>Action</TH>
-              <TH>Record</TH>
+              <TH>{t("audit.dateTime")}</TH>
+              <TH>{t("audit.user")}</TH>
+              <TH>{t("audit.module")}</TH>
+              <TH>{t("audit.action")}</TH>
+              <TH>{t("audit.record")}</TH>
             </TR>
           </THead>
           <tbody>

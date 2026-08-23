@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { Nav } from "./Nav";
 import { Branding } from "./Branding";
@@ -42,6 +43,7 @@ export function ShellChrome({
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const tc = useTranslations("common");
 
   const sidebar = (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
@@ -80,7 +82,7 @@ export function ShellChrome({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open menu"
+          aria-label={tc("openMenu")}
           className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
         >
           <Menu className="h-5 w-5" />
@@ -108,7 +110,7 @@ export function ShellChrome({
               <button
                 type="button"
                 onClick={close}
-                aria-label="Close menu"
+                aria-label={tc("closeMenu")}
                 className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
               >
                 <X className="h-5 w-5" />
@@ -120,7 +122,9 @@ export function ShellChrome({
       )}
 
       <main className="lg:pl-64">
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
+          {children}
+        </div>
       </main>
     </div>
   );

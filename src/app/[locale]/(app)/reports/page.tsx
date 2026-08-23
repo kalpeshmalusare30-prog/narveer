@@ -7,7 +7,9 @@ import {
   paymentModeReport,
   incomeByCategoryReport,
   expenseByCategoryReport,
+  expenseByYearReport,
   whatsappReport,
+  memberReport,
 } from "@/features/reports/query";
 import { getFinancialSummary } from "@/features/finance/money-query";
 import {
@@ -38,15 +40,40 @@ export default async function ReportsPage({
   const t = await getTranslations();
   const pfx = locale === "en" ? "" : `/${locale}`;
 
-  const [collection, modes, incomeCat, expenseCat, wa, summary] =
-    await Promise.all([
-      collectionReport(),
-      paymentModeReport(),
-      incomeByCategoryReport(),
-      expenseByCategoryReport(),
-      whatsappReport(),
-      getFinancialSummary(),
-    ]);
+  const [
+    collection,
+    modes,
+    incomeCat,
+    expenseCat,
+    expenseYears,
+    wa,
+    members,
+    summary,
+  ] = await Promise.all([
+    collectionReport(),
+    paymentModeReport(),
+    incomeByCategoryReport(),
+    expenseByCategoryReport(),
+    expenseByYearReport(),
+    whatsappReport(),
+    memberReport(),
+    getFinancialSummary(),
+  ]);
+
+  const sumTotals = (rows: typeof members) =>
+    rows.reduce(
+      (acc, m) => ({
+        expected: acc.expected + Number(m.expected),
+        paid: acc.paid + Number(m.paid),
+        pending: acc.pending + Number(m.pending),
+      }),
+      { expected: 0, paid: 0, pending: 0 },
+    );
+  // split members into those who still owe vs those fully paid up
+  const pendingMembers = members.filter((m) => Number(m.pending) > 0);
+  const paidMembers = members.filter(
+    (m) => Number(m.expected) > 0 && Number(m.pending) === 0,
+  );
 
   const ExportLink = ({ type }: { type: string }) => (
     <a
@@ -77,6 +104,100 @@ export default async function ReportsPage({
       {children}
     </div>
   );
+
+  const MemberFeeTable = ({
+    title,
+    hint,
+    type,
+    rows,
+    tone,
+  }: {
+    title: string;
+    hint: string;
+    type: string;
+    rows: typeof members;
+    tone: "rose" | "emerald";
+  }) => {
+    const totals = sumTotals(rows);
+    const accent = tone === "rose" ? "text-rose-600" : "text-emerald-600";
+    return (
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-slate-800 dark:text-slate-100">
+              {title}{" "}
+              <span className="text-sm font-normal text-slate-400">
+                ({rows.length})
+              </span>
+            </h2>
+            <p className="text-xs text-slate-500">{hint}</p>
+          </div>
+          <ExportLink type={type} />
+        </div>
+        {rows.length === 0 ? (
+          <Card>
+            <p className="text-sm text-slate-500">—</p>
+          </Card>
+        ) : (
+          <div className="max-h-[28rem] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+                <tr>
+                  <th className="px-4 py-3">{t("members.memberCode")}</th>
+                  <th className="px-4 py-3">{t("members.fullName")}</th>
+                  <th className="px-4 py-3">{t("members.mobile")}</th>
+                  <th className="px-4 py-3 text-right">{t("reports.fee")}</th>
+                  <th className="px-4 py-3 text-right">{t("reports.paid")}</th>
+                  <th className="px-4 py-3 text-right">{t("finance.pending")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((m) => (
+                  <tr
+                    key={m.memberCode}
+                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60 dark:border-slate-700/60 dark:hover:bg-slate-700/30"
+                  >
+                    <td className="px-4 py-2.5 font-medium tabular">
+                      {m.memberCode}
+                    </td>
+                    <td className="px-4 py-2.5">{m.name}</td>
+                    <td className="px-4 py-2.5 tabular text-slate-500">
+                      {m.mobile || "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular">
+                      {formatINR(m.expected)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular text-emerald-600">
+                      {formatINR(m.paid)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular text-rose-600">
+                      {formatINR(m.pending)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="sticky bottom-0 border-t-2 border-slate-200 bg-slate-50 font-semibold dark:border-slate-700 dark:bg-slate-900">
+                <tr>
+                  <td className="px-4 py-3" colSpan={3}>
+                    {t("reports.grandTotal")}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular">
+                    {formatINR(totals.expected)}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular text-emerald-600">
+                    {formatINR(totals.paid)}
+                  </td>
+                  <td className={`px-4 py-3 text-right tabular ${accent}`}>
+                    {formatINR(totals.pending)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -133,6 +254,69 @@ export default async function ReportsPage({
           </tbody>
         </Table>
       </Section>
+
+      {/* Year-wise expenses */}
+      <Section title={t("reports.expenseByYear")} type="expense-yearwise">
+        <Table>
+          <THead>
+            <TR>
+              <TH>{t("finance.yearDetail")}</TH>
+              <TH className="text-right">{t("reports.count")}</TH>
+              <TH className="text-right">{t("reports.total")}</TH>
+            </TR>
+          </THead>
+          <tbody>
+            {expenseYears.length === 0 ? (
+              <TR>
+                <TD className="text-slate-500">—</TD>
+                <TD />
+                <TD />
+              </TR>
+            ) : (
+              expenseYears.map((r) => (
+                <TR key={r.year}>
+                  <TD className="font-medium">{r.year}</TD>
+                  <TD className="text-right tabular">{r.count}</TD>
+                  <TD className="text-right tabular text-rose-600">
+                    {formatINR(r.total)}
+                  </TD>
+                </TR>
+              ))
+            )}
+          </tbody>
+          {expenseYears.length > 0 && (
+            <tfoot className="border-t-2 border-slate-200 bg-slate-50 font-semibold dark:border-slate-700 dark:bg-slate-900/40">
+              <tr>
+                <td className="px-4 py-3">{t("reports.grandTotal")}</td>
+                <td className="px-4 py-3 text-right tabular">
+                  {expenseYears.reduce((s, r) => s + r.count, 0)}
+                </td>
+                <td className="px-4 py-3 text-right tabular text-rose-600">
+                  {formatINR(
+                    expenseYears.reduce((s, r) => s + Number(r.total), 0),
+                  )}
+                </td>
+              </tr>
+            </tfoot>
+          )}
+        </Table>
+      </Section>
+
+      {/* Member-wise report split into pending vs completed (PRD §26.1) */}
+      <MemberFeeTable
+        title={t("reports.pendingPayments")}
+        hint={t("reports.pendingPaymentsHint")}
+        type="members-pending"
+        rows={pendingMembers}
+        tone="rose"
+      />
+      <MemberFeeTable
+        title={t("reports.completedPayments")}
+        hint={t("reports.completedPaymentsHint")}
+        type="members-paid"
+        rows={paidMembers}
+        tone="emerald"
+      />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Section title={t("reports.paymentModes")} type="payment-modes">

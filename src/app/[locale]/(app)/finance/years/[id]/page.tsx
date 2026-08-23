@@ -7,7 +7,7 @@ import {
   listYearFees,
   listAssignableMembers,
 } from "@/features/finance/fee-query";
-import { PageHeader, Card, Badge } from "@/components/ui";
+import { PageHeader, Card, Badge, StatusBadge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
 import { GenerateAllButton } from "@/features/finance/components/GenerateAllButton";
 import { AssignMembersPanel } from "@/features/finance/components/AssignMembersPanel";
@@ -91,9 +91,7 @@ export default async function YearDetailPage({
                   {canWaive ? (
                     <FeeStatusSelect annualFeeId={f.id} status={f.status} />
                   ) : (
-                    <Badge tone={f.pending === "0" ? "green" : "amber"}>
-                      {f.status}
-                    </Badge>
+                    <StatusBadge status={f.status} />
                   )}
                 </td>
               </tr>

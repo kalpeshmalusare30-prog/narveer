@@ -16,3 +16,4 @@ build
 /playwright/.cache
 next-env.d.ts
 .superpowers
+.claude

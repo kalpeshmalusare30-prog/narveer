@@ -133,7 +133,7 @@ export function ImportPanel() {
             <THead>
               <TR>
                 <TH>{t("import.row")}</TH>
-                <TH>Item</TH>
+                <TH>{t("import.item")}</TH>
                 <TH>{t("import.status")}</TH>
                 <TH>{t("import.message")}</TH>
               </TR>

@@ -24,6 +24,7 @@ export function TemplateEditor({ templates }: { templates: Tpl[] }) {
 }
 
 function TemplateRow({ tpl, onSaved }: { tpl: Tpl; onSaved: () => void }) {
+  const tc = useTranslations("common");
   const [body, setBody] = useState(tpl.body);
   const [pending, start] = useTransition();
   const [saved, setSaved] = useState(false);
@@ -54,7 +55,7 @@ function TemplateRow({ tpl, onSaved }: { tpl: Tpl; onSaved: () => void }) {
             })
           }
         >
-          Save
+          {tc("save")}
         </Button>
         {saved && <span className="text-xs text-emerald-600">✓</span>}
       </div>

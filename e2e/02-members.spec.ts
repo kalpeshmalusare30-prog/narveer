@@ -42,12 +42,13 @@ test("create, search, view, edit and void a member", async ({ page }) => {
   await page.waitForURL(/\/members(\?|$)/);
   await expect(page.getByRole("link", { name: updated })).toBeVisible();
 
-  // Void — after voiding, the void action disappears for that row
-  const row = page.getByRole("row", { name: new RegExp(updated) });
-  await row.getByRole("button", { name: /void/i }).click();
-  await expect(
-    page.getByRole("row", { name: new RegExp(updated) }).getByRole("button", {
-      name: /void/i,
-    }),
-  ).toHaveCount(0);
+  // Void — now lives on the member detail page in a danger zone with a
+  // two-step confirm. After voiding, the member is inactive and the void
+  // action disappears.
+  await page.getByRole("link", { name: updated }).click();
+  await expect(page).toHaveURL(/\/members\/[^/]+$/);
+  await page.getByRole("button", { name: /void member/i }).click(); // trigger
+  await page.getByRole("button", { name: /^Cancel$/ }).waitFor(); // confirm mode
+  await page.getByRole("button", { name: /void member/i }).click(); // confirm
+  await expect(page.getByRole("button", { name: /void member/i })).toHaveCount(0);
 });

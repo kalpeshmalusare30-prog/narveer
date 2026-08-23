@@ -4,7 +4,9 @@ import {
   paymentModeReport,
   incomeByCategoryReport,
   expenseByCategoryReport,
+  expenseByYearReport,
   whatsappReport,
+  memberReport,
 } from "@/features/reports/query";
 import { listPendingDues } from "@/features/finance/fee-query";
 import { toCsv } from "@/lib/csv";
@@ -42,11 +44,40 @@ export async function GET(
         ["Category", "Count", "Total"],
         rows.map((r) => [r.name, r.count, r.total]),
       );
+    } else if (type === "expense-yearwise") {
+      const rows = await expenseByYearReport();
+      csv = toCsv(
+        ["Year", "Count", "Total"],
+        rows.map((r) => [r.year, r.count, r.total]),
+      );
     } else if (type === "whatsapp") {
       const rows = await whatsappReport();
       csv = toCsv(
         ["Status", "Count"],
         rows.map((r) => [r.name, r.count]),
+      );
+    } else if (
+      type === "members" ||
+      type === "members-pending" ||
+      type === "members-paid"
+    ) {
+      const all = await memberReport();
+      const rows =
+        type === "members-pending"
+          ? all.filter((r) => Number(r.pending) > 0)
+          : type === "members-paid"
+            ? all.filter((r) => Number(r.expected) > 0 && Number(r.pending) === 0)
+            : all;
+      csv = toCsv(
+        ["Member Code", "Name", "Mobile", "Fee", "Paid", "Pending"],
+        rows.map((r) => [
+          r.memberCode,
+          r.name,
+          r.mobile,
+          r.expected,
+          r.paid,
+          r.pending,
+        ]),
       );
     } else if (type === "pending") {
       const rows = await listPendingDues();

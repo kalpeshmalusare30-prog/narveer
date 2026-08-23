@@ -1,5 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// E2E runs against the TEST database (mandal_crm_test) on an isolated port so it
+// never touches the real dev data. globalSetup seeds the test DB first.
+const PORT = 3100;
+const BASE = `http://localhost:${PORT}`;
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 45000,
@@ -8,16 +13,17 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [["list"]],
+  globalSetup: "./e2e/global-setup.ts",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: BASE,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     locale: "en",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000/login",
+    command: `dotenv -e .env.test -- next dev -p ${PORT}`,
+    url: `${BASE}/login`,
     reuseExistingServer: true,
     timeout: 180000,
   },

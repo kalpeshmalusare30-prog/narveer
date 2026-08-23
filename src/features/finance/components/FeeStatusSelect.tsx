@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { setFeeStatusAction } from "@/features/finance/fee-actions";
 
@@ -14,10 +15,12 @@ export function FeeStatusSelect({
   status: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("statuses");
+  const label = (s: string) => (t.has(s) ? t(s) : s);
   const [pending, start] = useTransition();
   // Only the manual statuses are selectable; Partial/Paid are derived and shown as-is.
   const isDerived = status === "Partial" || status === "Paid";
-  if (isDerived) return <span>{status}</span>;
+  if (isDerived) return <span>{label(status)}</span>;
 
   return (
     <select
@@ -34,7 +37,7 @@ export function FeeStatusSelect({
     >
       {OPTIONS.map((o) => (
         <option key={o} value={o}>
-          {o}
+          {label(o)}
         </option>
       ))}
     </select>

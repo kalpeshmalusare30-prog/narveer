@@ -110,6 +110,83 @@ export async function expenseByCategoryReport(): Promise<NameTotalRow[]> {
   });
 }
 
+export type MemberReportRow = {
+  memberCode: string;
+  name: string;
+  mobile: string;
+  expected: string;
+  paid: string;
+  pending: string;
+};
+
+/** Member-wise report (PRD §26.1): each member's total fee / paid / pending. */
+export async function memberReport(): Promise<MemberReportRow[]> {
+  return withAction({ permission: "report.view" }, async () => {
+    const members = await db.member.findMany({
+      orderBy: { memberCode: "asc" },
+      select: {
+        memberCode: true,
+        fullName: true,
+        mobile: true,
+        annualFees: {
+          select: {
+            feeAmount: true,
+            status: true,
+            allocations: {
+              select: {
+                amount: true,
+                payment: { select: { isVoided: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    const manualStatuses = ["Waived", "Exempted", "Cancelled"];
+    return members.map((m) => {
+      let expected = D(0);
+      let paid = D(0);
+      for (const f of m.annualFees) {
+        if (!manualStatuses.includes(f.status)) expected = expected.plus(f.feeAmount);
+        for (const a of f.allocations)
+          if (!a.payment.isVoided) paid = paid.plus(a.amount);
+      }
+      const pending = expected.minus(paid);
+      return {
+        memberCode: m.memberCode,
+        name: m.fullName,
+        mobile: m.mobile ?? "",
+        expected: expected.toString(),
+        paid: paid.toString(),
+        pending: (pending.lessThan(0) ? D(0) : pending).toString(),
+      };
+    });
+  });
+}
+
+export type YearTotalRow = { year: string; total: string; count: number };
+
+/** Expenses grouped by calendar year (of expenseDate) — year-wise, not lumped. */
+export async function expenseByYearReport(): Promise<YearTotalRow[]> {
+  return withAction({ permission: "report.view" }, async () => {
+    const expenses = await db.expense.findMany({
+      where: { isVoided: false },
+      select: { amount: true, expenseDate: true },
+    });
+    const map = new Map<string, { total: Prisma.Decimal; count: number }>();
+    for (const e of expenses) {
+      const y = String(new Date(e.expenseDate).getFullYear());
+      const cur = map.get(y) ?? { total: D(0), count: 0 };
+      cur.total = cur.total.plus(e.amount);
+      cur.count += 1;
+      map.set(y, cur);
+    }
+    return [...map.entries()]
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
+      .map(([year, v]) => ({ year, total: v.total.toString(), count: v.count }));
+  });
+}
+
 export async function whatsappReport(): Promise<NameTotalRow[]> {
   return withAction({ permission: "report.view" }, async () => {
     const grouped = await db.whatsAppMessage.groupBy({

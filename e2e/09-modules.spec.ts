@@ -5,17 +5,17 @@ test("income, expense, balance, reports, whatsapp, audit", async ({ page }) => {
   test.setTimeout(120000);
   await loginAsAdmin(page);
 
-  // Add income
+  // Add income (unique amount so it doesn't collide with imported real data)
   await page.goto("/finance/income");
-  await page.getByLabel("Amount", { exact: true }).fill("500");
+  await page.getByLabel("Amount", { exact: true }).fill("70007");
   await page.getByRole("button", { name: /save income/i }).click();
-  await expect(page.getByRole("cell", { name: "₹500.00" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "₹70,007.00" })).toBeVisible();
 
-  // Add expense
+  // Add expense (unique amount)
   await page.goto("/finance/expenses");
-  await page.getByLabel("Amount", { exact: true }).fill("300");
+  await page.getByLabel("Amount", { exact: true }).fill("30009");
   await page.getByRole("button", { name: /save expense/i }).click();
-  await expect(page.getByRole("cell", { name: "₹300.00" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "₹30,009.00" })).toBeVisible();
 
   // Dashboard financial summary (balance) renders
   await page.goto("/dashboard");

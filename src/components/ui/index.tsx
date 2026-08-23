@@ -5,6 +5,7 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
+import { useTranslations } from "next-intl";
 
 /* ------------------------------------------------------------------ Button */
 
@@ -265,7 +266,11 @@ const STATUS_TONE: Record<string, Tone> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  return <Badge tone={STATUS_TONE[status] ?? "slate"}>{status}</Badge>;
+  const t = useTranslations("statuses");
+  // status values are English tokens in the DB; show a localized label when we
+  // have one, otherwise fall back to the raw (custom) value.
+  const label = t.has(status) ? t(status) : status;
+  return <Badge tone={STATUS_TONE[status] ?? "slate"}>{label}</Badge>;
 }
 
 /* -------------------------------------------------------------------- Table */

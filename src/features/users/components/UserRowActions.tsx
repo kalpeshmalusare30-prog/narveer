@@ -17,6 +17,7 @@ export function UserRowActions({
   active: boolean;
 }) {
   const t = useTranslations("users");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -67,7 +68,7 @@ export function UserRowActions({
               })
             }
           >
-            OK
+            {tc("ok")}
           </Button>
         </span>
       )}

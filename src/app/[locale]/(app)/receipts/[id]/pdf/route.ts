@@ -45,7 +45,8 @@ export async function GET(
   }
 
   const buffer = await renderReceiptPdf({
-    locale: locale === "mr" ? "mr" : org.defaultLocale,
+    // follow the chosen UI locale so an English UI never yields a Marathi receipt
+    locale: locale === "mr" ? "mr" : "en",
     org: {
       name: org.name,
       address: org.address,

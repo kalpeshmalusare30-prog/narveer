@@ -18,6 +18,14 @@ function cellStr(v: unknown): string {
   return String(v).trim();
 }
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+// matra-insensitive key so spelling variants (मनु/मनू, शि/शी, मालुसरे/मालूसरे)
+// resolve to the same member instead of creating phantom duplicates.
+const matraKey = (s: string) =>
+  norm(s)
+    .replace(/[()]/g, "")
+    .replace(/ी/g, "ि")
+    .replace(/ू/g, "ु")
+    .replace(/\s+/g, "");
 // Sheets mix in section labels and donation notes; only keep real person rows.
 function isJunkName(n: string): boolean {
   if (!n) return true;
@@ -67,7 +75,11 @@ async function main() {
   wb.getWorksheet(VARGANI_SHEET)?.eachRow((row, n) => {
     if (n < 4) return;
     const a = (row.values as unknown[]).slice(1);
+    const serial = cellStr(a[0]);
     const name = norm(cellStr(a[1]));
+    // only the numbered member roster (serial 1..N); skips donation-note and
+    // "receipt-book pending" rows that have no member serial.
+    if (!/^\d+$/.test(serial)) return;
     if (!name || isJunkName(name) || seenV.has(name)) return;
     seenV.add(name);
     vargani.push({
@@ -145,17 +157,9 @@ async function main() {
     fyByYear.set(y, fy);
   }
 
-  const memberByName = new Map<string, string>();
-  const mobileByName = new Map<string, string | null>();
-  const placeByName = new Map<string, string>();
-  for (const v of vargani) {
-    mobileByName.set(v.name, v.mobile);
-    placeByName.set(v.name, v.place);
-  }
-  const allNames = new Set<string>([
-    ...vargani.map((v) => v.name),
-    ...thak.map((t) => t.name),
-  ]);
+  // member roster is the numbered vargani list ONLY; thak rows attach to these.
+  const memberIdByKey = new Map<string, string>();
+  const resolveMember = (name: string) => memberIdByKey.get(matraKey(name)) ?? null;
 
   const nextCode = async () => {
     const o = await db.organization.update({
@@ -166,22 +170,28 @@ async function main() {
     return `${o.memberCodePrefix}${String(o.memberCodeSeq).padStart(4, "0")}`;
   };
   let membersCreated = 0;
-  for (const name of allNames) {
-    if (memberByName.has(name)) continue;
+  for (const v of vargani) {
+    if (resolveMember(v.name)) continue;
     const m = await db.member.create({
       data: {
         organizationId: org.id,
         memberCode: await nextCode(),
-        fullName: name,
-        mobile: mobileByName.get(name) ?? null,
-        area: placeByName.get(name) ?? null,
+        fullName: v.name,
+        mobile: v.mobile ?? null,
+        area: v.place ?? null,
         statusId: status.id,
         membershipTypeId: type?.id ?? null,
       },
     });
-    memberByName.set(name, m.id);
+    memberIdByKey.set(matraKey(v.name), m.id);
     membersCreated++;
   }
+  // helper: resolve-or-warn for thak names (never create phantom members)
+  const memberOrWarn = (name: string): string | null => {
+    const id = resolveMember(name);
+    if (!id) console.warn(`  [skip] thakbaki name not in roster: "${name}"`);
+    return id;
+  };
 
   const nextReceipt = async () => {
     const o = await db.organization.update({
@@ -268,7 +278,8 @@ async function main() {
   let arrearsFees = 0;
   for (const t of thak) {
     if (t.kind !== "arrears") continue;
-    const memberId = memberByName.get(t.name)!;
+    const memberId = memberOrWarn(t.name);
+    if (!memberId) continue;
     for (const y of t.years) {
       await ensureFee(memberId, y.year, y.amount);
       arrearsFees++;
@@ -279,7 +290,7 @@ async function main() {
   let v2026Paid = 0,
     v2026Pending = 0;
   for (const v of vargani) {
-    const memberId = memberByName.get(v.name)!;
+    const memberId = resolveMember(v.name)!;
     const amount = v.cash ?? v.online ?? null;
     const fee = await ensureFee(memberId, 2026, amount ?? 1200);
     if (amount) {
@@ -302,68 +313,18 @@ async function main() {
   let paidPayments = 0;
   for (const t of thak) {
     if (t.kind !== "paid") continue;
-    await autoAllocate(memberByName.get(t.name)!, t.total, cashMode, t.date);
+    const memberId = memberOrWarn(t.name);
+    if (!memberId) continue;
+    await autoAllocate(memberId, t.total, cashMode, t.date);
     paidPayments++;
   }
 
-  // 4) dummy income & expenses to populate the financial dashboard
-  const incCat = async (name: string) =>
-    (
-      await db.incomeCategory.upsert({
-        where: { organizationId_name: { organizationId: org.id, name } },
-        update: {},
-        create: { organizationId: org.id, name },
-      })
-    ).id;
-  const expCat = async (name: string) =>
-    (
-      await db.expenseCategory.upsert({
-        where: { organizationId_name: { organizationId: org.id, name } },
-        update: {},
-        create: { organizationId: org.id, name },
-      })
-    ).id;
-  const donation = await incCat("Donation");
-  const sponsorship = await incCat("Sponsorship");
-  for (const d of [
-    { amount: "25000", cat: donation, from: "Shri. R. Malusare", mode: onlineMode },
-    { amount: "11000", cat: donation, from: "Local Trust", mode: cashMode },
-    { amount: "51000", cat: sponsorship, from: "Kharabwadi Co-op Bank", mode: onlineMode },
-  ]) {
-    await db.income.create({
-      data: {
-        organizationId: org.id,
-        amount: new Prisma.Decimal(d.amount),
-        incomeCategoryId: d.cat,
-        receivedFrom: d.from,
-        paymentModeId: d.mode,
-        incomeDate: new Date(Date.UTC(2026, 1, 10)),
-      },
-    });
-  }
-  const eventCat = await expCat("Event / Program");
-  const elecCat = await expCat("Electricity");
-  for (const e of [
-    { amount: "35000", cat: eventCat, to: "Sound & Mandap", desc: "Annual event" },
-    { amount: "8500", cat: elecCat, to: "MSEB", desc: "Electricity bill" },
-    { amount: "12000", cat: eventCat, to: "Prasad & Bhojan", desc: "Mahaprasad" },
-  ]) {
-    await db.expense.create({
-      data: {
-        organizationId: org.id,
-        amount: new Prisma.Decimal(e.amount),
-        expenseCategoryId: e.cat,
-        paidTo: e.to,
-        description: e.desc,
-        paymentModeId: cashMode,
-        expenseDate: new Date(Date.UTC(2026, 1, 20)),
-      },
-    });
-  }
+  // Real income/expenses are imported separately (scripts/cleanup-and-expenses.ts
+  // from the "वार्षिक अहवाल" sheets). This loader only handles members + fees.
 
   // eslint-disable-next-line no-console
   console.log(
-    `members=${allNames.size} (new ${membersCreated}); arrears fees=${arrearsFees}; 2026 paid=${v2026Paid} pending=${v2026Pending}; thakbaki paid rows=${paidPayments}; +3 income, +3 expenses`,
+    `members=${membersCreated} (roster only); arrears fees=${arrearsFees}; 2026 paid=${v2026Paid} pending=${v2026Pending}; thakbaki paid rows=${paidPayments}`,
   );
 }
 

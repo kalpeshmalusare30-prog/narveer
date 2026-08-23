@@ -5,9 +5,10 @@ import { getSessionUser } from "@/lib/auth/session";
 import { listMemberFees, getMemberTotalPending } from "@/features/finance/fee-query";
 import { listMemberPayments } from "@/features/payments/query";
 import { Link } from "@/i18n/navigation";
-import { PageHeader, Card, Badge, Button } from "@/components/ui";
+import { PageHeader, Card, Badge, Button, StatusBadge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
 import { ProfileTabs } from "@/features/members/components/ProfileTabs";
+import { VoidMemberButton } from "@/features/members/components/VoidMemberButton";
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -28,11 +29,14 @@ export default async function MemberProfilePage({
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const ts = await getTranslations("statuses");
   const member = await getMember(id);
   if (!member) notFound();
+  const localizeStatus = (s: string) => (ts.has(s) ? ts(s) : s);
 
   const user = await getSessionUser();
   const canEdit = !!user?.permissions.includes("member.edit");
+  const canVoid = !!user?.permissions.includes("member.void");
   const canViewFees = !!user?.permissions.includes("fee.view");
   const canViewPayments = !!user?.permissions.includes("payment.view");
   const canViewReceipts = !!user?.permissions.includes("receipt.view");
@@ -68,7 +72,7 @@ export default async function MemberProfilePage({
         label={t("members.membershipType")}
         value={member!.membershipType?.name}
       />
-      <Row label={t("members.status")} value={member!.status.name} />
+      <Row label={t("members.status")} value={localizeStatus(member!.status.name)} />
       <Row label={t("members.joiningDate")} value={fmtDate(member!.joiningDate)} />
     </Card>
   );
@@ -99,9 +103,7 @@ export default async function MemberProfilePage({
               <td className="py-1">{formatINR(f.paid)}</td>
               <td className="py-1">{formatINR(f.pending)}</td>
               <td className="py-1">
-                <Badge tone={f.pending === "0" ? "green" : "amber"}>
-                  {f.status}
-                </Badge>
+                <StatusBadge status={f.status} />
               </td>
             </tr>
           ))}
@@ -190,10 +192,16 @@ export default async function MemberProfilePage({
         <span className="font-mono text-sm text-slate-500">
           {member!.memberCode}
         </span>
-        <Badge tone={member!.isActive ? "green" : "slate"}>
-          {member!.status.name}
-        </Badge>
+        <StatusBadge status={member!.status.name} />
       </div>
+      {canVoid && member!.isActive && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50/50 px-4 py-3 dark:border-rose-500/30 dark:bg-rose-500/5">
+          <span className="text-sm text-slate-600 dark:text-slate-300">
+            {t("members.confirmVoid")}
+          </span>
+          <VoidMemberButton id={member!.id} />
+        </div>
+      )}
       <ProfileTabs
         personal={personal}
         membership={membership}
