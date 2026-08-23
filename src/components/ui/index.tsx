@@ -68,29 +68,34 @@ export function Select({
 
 export function Field({
   label,
-  htmlFor,
   required,
   children,
   hint,
 }: {
   label: string;
+  /** @deprecated association is implicit; kept for compatibility */
   htmlFor?: string;
   required?: boolean;
   children: ReactNode;
   hint?: string;
 }) {
+  // The control is wrapped inside the <label> for implicit association, so
+  // getByLabel works without matching for/id. The required marker is a CSS
+  // ::after so it is not part of the label's text content / accessible name.
   return (
-    <div className="flex flex-col gap-1">
-      <label
-        htmlFor={htmlFor}
-        className="text-sm font-medium text-slate-700 dark:text-slate-200"
+    <label className="flex flex-col gap-1">
+      <span
+        className={`text-sm font-medium text-slate-700 dark:text-slate-200 ${
+          required
+            ? "after:ml-0.5 after:text-red-500 after:content-['*']"
+            : ""
+        }`}
       >
         {label}
-        {required && <span className="text-red-500"> *</span>}
-      </label>
+      </span>
       {children}
       {hint && <span className="text-xs text-slate-500">{hint}</span>}
-    </div>
+    </label>
   );
 }
 
