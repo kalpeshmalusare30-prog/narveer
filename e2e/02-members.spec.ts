@@ -25,8 +25,9 @@ test("create, search, view, edit and void a member", async ({ page }) => {
   await page.getByRole("link", { name }).click();
   await expect(page).toHaveURL(/\/members\/[^/]+$/);
   // Tabs are client-interactive; retry to absorb hydration timing.
+  // Annual Fees is live from Phase 2; the WhatsApp tab remains a Phase-3 placeholder.
   await expect(async () => {
-    await page.getByRole("button", { name: "Annual Fees" }).click();
+    await page.getByRole("button", { name: "WhatsApp" }).click();
     await expect(page.getByTestId("later-phase")).toBeVisible({
       timeout: 1500,
     });

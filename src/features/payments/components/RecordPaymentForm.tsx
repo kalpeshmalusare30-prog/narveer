@@ -92,6 +92,7 @@ export function RecordPaymentForm({
         {error && <Alert>{error}</Alert>}
         <Field label={t("payments.member")} required>
           <Select
+            data-testid="member-select"
             value={memberId}
             onChange={(e) => onMember(e.target.value)}
             required
