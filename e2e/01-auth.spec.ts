@@ -14,7 +14,9 @@ test("org admin can log in and see the dashboard, then log out", async ({
   page,
 }) => {
   await loginAsAdmin(page);
-  await expect(page.getByTestId("stat-total")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Members", exact: true }),
   ).toBeVisible();
