@@ -23,6 +23,7 @@
     "uploads",
     "uploads-test",
     "e2e",
+    "scripts",
     "vitest.config.ts",
     "playwright.config.ts"
   ]

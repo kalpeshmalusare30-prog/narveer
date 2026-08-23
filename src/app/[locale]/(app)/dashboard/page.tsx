@@ -93,11 +93,10 @@ export default async function DashboardPage({
         {summary && (
           <>
             <StatCard
-              label={tn("finance.collected")}
+              label={tn("reports.totalIncome")}
               value={formatINR(summary.totalIncome)}
               icon={<Wallet className="h-5 w-5" />}
               tone="emerald"
-              sub={tn("dashboard.expected")}
             />
             <StatCard
               label={tn("dashboard.balance")}
