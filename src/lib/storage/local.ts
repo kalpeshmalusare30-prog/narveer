@@ -15,7 +15,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   url(ref: string): string {
-    return `/uploads/${ref}`;
+    return `/api/files/${ref}`;
   }
 
   read(ref: string): Promise<Buffer> {
