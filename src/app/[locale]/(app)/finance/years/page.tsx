@@ -1,6 +1,9 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { getSessionUser } from "@/lib/auth/session";
-import { listFinancialYears } from "@/features/finance/year-query";
+import {
+  listFinancialYears,
+  getOrgDefaultFee,
+} from "@/features/finance/year-query";
 import { Link } from "@/i18n/navigation";
 import { PageHeader, Badge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
@@ -18,11 +21,12 @@ export default async function FinancialYearsPage({
   const me = await getSessionUser();
   const canManage = !!me?.permissions.includes("financialyear.manage");
   const years = await listFinancialYears();
+  const defaultFee = canManage ? await getOrgDefaultFee() : "0";
 
   return (
     <div>
       <PageHeader title={t("finance.yearsTitle")} />
-      {canManage && <FinancialYearForm />}
+      {canManage && <FinancialYearForm defaultFee={defaultFee} />}
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-700/40">

@@ -16,6 +16,13 @@ const TENANT_MODELS = new Set([
   "Payment",
   "PaymentAllocation",
   "Receipt",
+  "IncomeCategory",
+  "Income",
+  "ExpenseCategory",
+  "Expense",
+  "WhatsAppTemplate",
+  "WhatsAppMessage",
+  "Notification",
 ]);
 
 const WHERE_OPS = new Set([

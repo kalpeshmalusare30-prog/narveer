@@ -31,7 +31,15 @@ test("super admin creates org with system roles + defaults, then deactivates", a
   const statuses = await testDb.memberStatus.count({
     where: { organizationId: org.id },
   });
-  expect(statuses).toBe(3);
+  expect(statuses).toBe(4);
+  const incomeCats = await testDb.incomeCategory.count({
+    where: { organizationId: org.id },
+  });
+  expect(incomeCats).toBeGreaterThan(0);
+  const templates = await testDb.whatsAppTemplate.count({
+    where: { organizationId: org.id },
+  });
+  expect(templates).toBeGreaterThan(0);
 
   await setOrganizationActive(org.id, false);
   expect(

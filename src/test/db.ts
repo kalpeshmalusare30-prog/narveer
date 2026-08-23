@@ -4,6 +4,13 @@ import { PrismaClient } from "@prisma/client";
 export const testDb = new PrismaClient();
 
 const TABLES = [
+  "Notification",
+  "WhatsAppMessage",
+  "WhatsAppTemplate",
+  "Expense",
+  "ExpenseCategory",
+  "Income",
+  "IncomeCategory",
   "Receipt",
   "PaymentAllocation",
   "Payment",

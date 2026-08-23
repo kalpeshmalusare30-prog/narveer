@@ -19,3 +19,17 @@ export async function listPaymentModes() {
     db.paymentMode.findMany({ orderBy: { name: "asc" } }),
   );
 }
+
+export async function listIncomeCategories() {
+  return withAction(
+    { permission: "settings.income_category.manage" },
+    async () => db.incomeCategory.findMany({ orderBy: { name: "asc" } }),
+  );
+}
+
+export async function listExpenseCategories() {
+  return withAction(
+    { permission: "settings.expense_category.manage" },
+    async () => db.expenseCategory.findMany({ orderBy: { name: "asc" } }),
+  );
+}

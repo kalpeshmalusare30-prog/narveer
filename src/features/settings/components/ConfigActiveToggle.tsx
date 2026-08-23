@@ -7,6 +7,8 @@ import {
   toggleMembershipTypeAction,
   toggleMemberStatusAction,
   togglePaymentModeAction,
+  toggleIncomeCategoryAction,
+  toggleExpenseCategoryAction,
 } from "@/features/settings/config-actions";
 
 export function ConfigActiveToggle({
@@ -16,7 +18,7 @@ export function ConfigActiveToggle({
 }: {
   id: string;
   active: boolean;
-  kind: "type" | "status" | "paymentMode";
+  kind: "type" | "status" | "paymentMode" | "incomeCategory" | "expenseCategory";
 }) {
   const t = useTranslations("common");
   const router = useRouter();
@@ -30,6 +32,10 @@ export function ConfigActiveToggle({
           if (kind === "type") await toggleMembershipTypeAction(id, !active);
           else if (kind === "paymentMode")
             await togglePaymentModeAction(id, !active);
+          else if (kind === "incomeCategory")
+            await toggleIncomeCategoryAction(id, !active);
+          else if (kind === "expenseCategory")
+            await toggleExpenseCategoryAction(id, !active);
           else await toggleMemberStatusAction(id, !active);
           router.refresh();
         })

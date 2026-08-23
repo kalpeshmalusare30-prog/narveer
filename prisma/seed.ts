@@ -4,21 +4,14 @@ config();
 import { PrismaClient } from "@prisma/client";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PERMISSIONS } from "../src/lib/rbac/permissions";
-import { SYSTEM_ROLES } from "../src/lib/rbac/roles";
 import { hashPassword } from "../src/lib/auth/password";
 import { LocalStorageProvider } from "../src/lib/storage/local";
+import { provisionOrgDefaults } from "../src/lib/org/provision";
 
 const db = new PrismaClient();
 
 export async function seed(): Promise<void> {
-  // 1. Permission catalog
-  await db.permission.createMany({
-    data: PERMISSIONS.map((key) => ({ key })),
-    skipDuplicates: true,
-  });
-
-  // 2. Platform super admin (no organization)
+  // 1. Platform super admin (no organization)
   await db.user.upsert({
     where: { loginId: "superadmin" },
     update: {},
@@ -31,7 +24,7 @@ export async function seed(): Promise<void> {
     },
   });
 
-  // 3. Initial organization: Narveer Tanaji Malusare Pratishthan
+  // 2. Initial organization: Narveer Tanaji Malusare Pratishthan
   const org = await db.organization.upsert({
     where: { shortName: "NTMP" },
     update: {},
@@ -50,7 +43,7 @@ export async function seed(): Promise<void> {
     },
   });
 
-  // 3b. Organization logo (optional; from project-root logo.png)
+  // 2b. Organization logo (optional; from project-root logo.png)
   try {
     const logo = await readFile(path.join(process.cwd(), "logo.png"));
     const storage = new LocalStorageProvider();
@@ -63,31 +56,11 @@ export async function seed(): Promise<void> {
     // logo is optional
   }
 
-  // 4. System roles + their permissions
-  const roleByName: Record<string, string> = {};
-  for (const r of SYSTEM_ROLES) {
-    const role = await db.role.upsert({
-      where: { organizationId_name: { organizationId: org.id, name: r.name } },
-      update: { description: r.description, isSystem: true },
-      create: {
-        organizationId: org.id,
-        name: r.name,
-        description: r.description,
-        isSystem: true,
-      },
-    });
-    roleByName[r.name] = role.id;
-    await db.rolePermission.deleteMany({ where: { roleId: role.id } });
-    await db.rolePermission.createMany({
-      data: r.permissions.map((permissionKey) => ({
-        roleId: role.id,
-        permissionKey,
-      })),
-      skipDuplicates: true,
-    });
-  }
+  // 3. Provision all per-org defaults (permissions, roles, types, statuses,
+  //    payment modes, income/expense categories, WhatsApp templates).
+  const roleByName = await provisionOrgDefaults(db, org.id);
 
-  // 5. Organization admin user + role assignment
+  // 4. Organization admin user + role assignment
   const admin = await db.user.upsert({
     where: { loginId: "admin" },
     update: {},
@@ -107,40 +80,8 @@ export async function seed(): Promise<void> {
     update: {},
     create: { userId: admin.id, roleId: roleByName["Org Admin"] },
   });
-
-  // 6. Default membership types + member statuses
-  for (const name of ["General", "Life", "Honorary"]) {
-    await db.membershipType.upsert({
-      where: { organizationId_name: { organizationId: org.id, name } },
-      update: {},
-      create: { organizationId: org.id, name },
-    });
-  }
-  const statuses = [
-    { name: "Active", isTerminal: false },
-    { name: "Inactive", isTerminal: false },
-    { name: "Suspended", isTerminal: false },
-    { name: "Left Organization", isTerminal: true },
-  ];
-  for (const s of statuses) {
-    await db.memberStatus.upsert({
-      where: { organizationId_name: { organizationId: org.id, name: s.name } },
-      update: {},
-      create: { organizationId: org.id, name: s.name, isTerminal: s.isTerminal },
-    });
-  }
-
-  // 7. Default payment modes
-  for (const name of ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"]) {
-    await db.paymentMode.upsert({
-      where: { organizationId_name: { organizationId: org.id, name } },
-      update: {},
-      create: { organizationId: org.id, name },
-    });
-  }
 }
 
-// Run only when invoked directly (tsx prisma/seed.ts), not when imported by tests.
 if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
     .then(() => db.$disconnect())

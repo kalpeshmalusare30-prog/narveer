@@ -4,8 +4,7 @@ import { z } from "zod";
 import { rawDb } from "@/lib/db/raw";
 import { withSuperAdmin } from "@/lib/rbac/guard";
 import { writeAudit } from "@/lib/audit/audit";
-import { SYSTEM_ROLES } from "@/lib/rbac/roles";
-import { PERMISSIONS } from "@/lib/rbac/permissions";
+import { provisionOrgDefaults } from "@/lib/org/provision";
 
 const orgInput = z.object({
   name: z.string().trim().min(1, "Required"),
@@ -19,10 +18,6 @@ export type OrgInput = z.infer<typeof orgInput>;
 export async function createOrganization(input: OrgInput) {
   const data = orgInput.parse(input);
   return withSuperAdmin({ permission: "org.create" }, async (user) => {
-    await rawDb.permission.createMany({
-      data: PERMISSIONS.map((key) => ({ key })),
-      skipDuplicates: true,
-    });
     const org = await rawDb.organization.create({
       data: {
         name: data.name,
@@ -32,44 +27,8 @@ export async function createOrganization(input: OrgInput) {
         email: data.email ?? null,
       },
     });
-    for (const r of SYSTEM_ROLES) {
-      const role = await rawDb.role.create({
-        data: {
-          organizationId: org.id,
-          name: r.name,
-          description: r.description,
-          isSystem: true,
-        },
-      });
-      await rawDb.rolePermission.createMany({
-        data: r.permissions.map((permissionKey) => ({
-          roleId: role.id,
-          permissionKey,
-        })),
-        skipDuplicates: true,
-      });
-    }
-    await rawDb.membershipType.create({
-      data: { organizationId: org.id, name: "General" },
-    });
-    for (const s of [
-      { name: "Active", isTerminal: false },
-      { name: "Inactive", isTerminal: false },
-      { name: "Left Organization", isTerminal: true },
-    ]) {
-      await rawDb.memberStatus.create({
-        data: {
-          organizationId: org.id,
-          name: s.name,
-          isTerminal: s.isTerminal,
-        },
-      });
-    }
-    for (const name of ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"]) {
-      await rawDb.paymentMode.create({
-        data: { organizationId: org.id, name },
-      });
-    }
+    // Seed all per-org defaults (roles, categories, templates) — shared with seed.
+    await provisionOrgDefaults(rawDb, org.id);
     await writeAudit({
       action: "create",
       module: "organizations",

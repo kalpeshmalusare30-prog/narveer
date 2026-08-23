@@ -29,6 +29,10 @@ model Organization {
   receiptSeq           Int      @default(0)
   defaultLocale        String   @default("en")
   setupCompleted       Boolean  @default(false)
+  whatsappProvider     String?
+  whatsappPhoneId      String?
+  whatsappToken        String?
+  whatsappConfigured   Boolean  @default(false)
   isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -44,6 +48,13 @@ model Organization {
   payments           Payment[]
   paymentAllocations PaymentAllocation[]
   receipts           Receipt[]
+  incomeCategories   IncomeCategory[]
+  incomes            Income[]
+  expenseCategories  ExpenseCategory[]
+  expenses           Expense[]
+  whatsappTemplates  WhatsAppTemplate[]
+  whatsappMessages   WhatsAppMessage[]
+  notifications      Notification[]
 
   @@unique([shortName])
 }
@@ -163,9 +174,10 @@ model Member {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  annualFees AnnualFee[]
-  payments   Payment[]
-  receipts   Receipt[]
+  annualFees       AnnualFee[]
+  payments         Payment[]
+  receipts         Receipt[]
+  whatsappMessages WhatsAppMessage[]
 
   @@unique([organizationId, memberCode])
   @@index([organizationId])
@@ -217,6 +229,8 @@ model PaymentMode {
   name           String
   isActive       Boolean      @default(true)
   payments       Payment[]
+  incomes        Income[]
+  expenses       Expense[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -300,4 +314,125 @@ model Receipt {
   @@unique([organizationId, receiptNumber])
   @@index([organizationId])
   @@index([memberId])
+}
+
+model IncomeCategory {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  isActive       Boolean      @default(true)
+  incomes        Income[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Income {
+  id               String          @id @default(cuid())
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  incomeDate       DateTime        @default(now())
+  incomeCategoryId String?
+  incomeCategory   IncomeCategory? @relation(fields: [incomeCategoryId], references: [id])
+  amount           Decimal         @db.Decimal(12, 2)
+  receivedFrom     String?
+  paymentModeId    String?
+  paymentMode      PaymentMode?    @relation(fields: [paymentModeId], references: [id])
+  referenceNumber  String?
+  notes            String?
+  isVoided         Boolean         @default(false)
+  createdBy        String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([organizationId])
+  @@index([incomeCategoryId])
+}
+
+model ExpenseCategory {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  isActive       Boolean      @default(true)
+  expenses       Expense[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Expense {
+  id                String           @id @default(cuid())
+  organizationId    String
+  organization      Organization     @relation(fields: [organizationId], references: [id])
+  expenseDate       DateTime         @default(now())
+  expenseCategoryId String?
+  expenseCategory   ExpenseCategory? @relation(fields: [expenseCategoryId], references: [id])
+  amount            Decimal          @db.Decimal(12, 2)
+  description       String?
+  paidTo            String?
+  billNumber        String?
+  paymentModeId     String?
+  paymentMode       PaymentMode?     @relation(fields: [paymentModeId], references: [id])
+  approvedBy        String?
+  notes             String?
+  isVoided          Boolean          @default(false)
+  createdBy         String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([organizationId])
+  @@index([expenseCategoryId])
+}
+
+model WhatsAppTemplate {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  type           String
+  name           String
+  body           String
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, type, name])
+  @@index([organizationId])
+}
+
+model WhatsAppMessage {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  memberId          String?
+  member            Member?      @relation(fields: [memberId], references: [id])
+  type              String
+  toNumber          String
+  content           String
+  status            String       @default("Pending")
+  failureReason     String?
+  providerMessageId String?
+  relatedPaymentId  String?
+  relatedReceiptId  String?
+  relatedAnnualFeeId String?
+  sentByUserId      String?
+  sentAt            DateTime?
+  createdAt         DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([memberId])
+  @@index([status])
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  type           String
+  message        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
 }

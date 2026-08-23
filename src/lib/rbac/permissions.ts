@@ -16,6 +16,9 @@ export const PERMISSIONS = [
   "settings.membership_type.manage",
   "settings.member_status.manage",
   "settings.payment_mode.manage",
+  "settings.income_category.manage",
+  "settings.expense_category.manage",
+  "settings.whatsapp.manage",
   "audit.view",
   "financialyear.view",
   "financialyear.manage",
@@ -26,6 +29,16 @@ export const PERMISSIONS = [
   "payment.create",
   "payment.void",
   "receipt.view",
+  "income.view",
+  "income.create",
+  "income.void",
+  "expense.view",
+  "expense.create",
+  "expense.void",
+  "report.view",
+  "whatsapp.view",
+  "whatsapp.send",
+  "notification.view",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];

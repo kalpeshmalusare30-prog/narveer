@@ -173,3 +173,122 @@ export async function createPaymentModeForm(
 export async function togglePaymentModeAction(id: string, active: boolean) {
   await setPaymentModeActive(id, active);
 }
+
+// --- Income categories ---
+
+export async function createIncomeCategory(name: string) {
+  const data = nameInput.parse({ name });
+  return withAction(
+    { permission: "settings.income_category.manage" },
+    async (ctx) => {
+      const existing = await db.incomeCategory.findFirst({
+        where: { name: data.name },
+      });
+      if (existing) throw new Error("DUPLICATE");
+      const created = await db.incomeCategory.create({
+        data: { organizationId: ctx.organizationId, name: data.name },
+      });
+      await writeAudit({
+        action: "create",
+        module: "settings",
+        recordType: "IncomeCategory",
+        recordId: created.id,
+        newValue: { name: data.name },
+      });
+      return created;
+    },
+  );
+}
+
+export async function setIncomeCategoryActive(id: string, active: boolean) {
+  return withAction(
+    { permission: "settings.income_category.manage" },
+    async () => {
+      await db.incomeCategory.update({ where: { id }, data: { isActive: active } });
+      await writeAudit({
+        action: "update",
+        module: "settings",
+        recordType: "IncomeCategory",
+        recordId: id,
+        newValue: { isActive: active },
+      });
+    },
+  );
+}
+
+export async function createIncomeCategoryForm(
+  _prev: SaveState,
+  formData: FormData,
+): Promise<SaveState> {
+  try {
+    await createIncomeCategory((formData.get("name") ?? "").toString());
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  return { success: true };
+}
+
+export async function toggleIncomeCategoryAction(id: string, active: boolean) {
+  await setIncomeCategoryActive(id, active);
+}
+
+// --- Expense categories ---
+
+export async function createExpenseCategory(name: string) {
+  const data = nameInput.parse({ name });
+  return withAction(
+    { permission: "settings.expense_category.manage" },
+    async (ctx) => {
+      const existing = await db.expenseCategory.findFirst({
+        where: { name: data.name },
+      });
+      if (existing) throw new Error("DUPLICATE");
+      const created = await db.expenseCategory.create({
+        data: { organizationId: ctx.organizationId, name: data.name },
+      });
+      await writeAudit({
+        action: "create",
+        module: "settings",
+        recordType: "ExpenseCategory",
+        recordId: created.id,
+        newValue: { name: data.name },
+      });
+      return created;
+    },
+  );
+}
+
+export async function setExpenseCategoryActive(id: string, active: boolean) {
+  return withAction(
+    { permission: "settings.expense_category.manage" },
+    async () => {
+      await db.expenseCategory.update({
+        where: { id },
+        data: { isActive: active },
+      });
+      await writeAudit({
+        action: "update",
+        module: "settings",
+        recordType: "ExpenseCategory",
+        recordId: id,
+        newValue: { isActive: active },
+      });
+    },
+  );
+}
+
+export async function createExpenseCategoryForm(
+  _prev: SaveState,
+  formData: FormData,
+): Promise<SaveState> {
+  try {
+    await createExpenseCategory((formData.get("name") ?? "").toString());
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  return { success: true };
+}
+
+export async function toggleExpenseCategoryAction(id: string, active: boolean) {
+  await setExpenseCategoryActive(id, active);
+}

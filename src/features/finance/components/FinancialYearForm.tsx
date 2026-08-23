@@ -9,7 +9,7 @@ import {
 } from "@/features/finance/year-actions";
 import { Button, Input, Field } from "@/components/ui";
 
-export function FinancialYearForm() {
+export function FinancialYearForm({ defaultFee }: { defaultFee: string }) {
   const t = useTranslations();
   const router = useRouter();
   const ref = useRef<HTMLFormElement>(null);
@@ -30,7 +30,12 @@ export function FinancialYearForm() {
         <Input name="label" required placeholder="2024-25" className="w-40" />
       </Field>
       <Field label={t("finance.feeAmount")}>
-        <Input name="feeAmount" required defaultValue="1000" className="w-32" />
+        <Input
+          name="feeAmount"
+          required
+          defaultValue={defaultFee}
+          className="w-32"
+        />
       </Field>
       <Button type="submit" disabled={pending}>
         {t("common.add")}
