@@ -1,8 +1,19 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { CheckCircle2 } from "lucide-react";
+import { getSessionUser } from "@/lib/auth/session";
 import { listPendingDues } from "@/features/finance/fee-query";
 import { Link } from "@/i18n/navigation";
-import { PageHeader } from "@/components/ui";
+import {
+  PageHeader,
+  Table,
+  THead,
+  TR,
+  TH,
+  TD,
+  EmptyState,
+} from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
+import { WaSendButton } from "@/features/whatsapp/components/WaSendButton";
 
 export default async function PendingDuesPage({
   params,
@@ -12,52 +23,60 @@ export default async function PendingDuesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const me = await getSessionUser();
+  const canRemind = !!me?.permissions.includes("whatsapp.send");
   const rows = await listPendingDues();
 
   return (
     <div>
       <PageHeader title={t("finance.pendingDuesTitle")} />
       {rows.length === 0 ? (
-        <p className="text-slate-500" data-testid="no-pending">
-          {t("finance.noPending")}
-        </p>
+        <EmptyState
+          icon={<CheckCircle2 className="h-6 w-6" />}
+          title={t("finance.noPending")}
+        />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-700/40">
-              <tr>
-                <th className="px-4 py-2">{t("members.memberCode")}</th>
-                <th className="px-4 py-2">{t("members.fullName")}</th>
-                <th className="px-4 py-2">{t("members.mobile")}</th>
-                <th className="px-4 py-2">{t("finance.pendingYears")}</th>
-                <th className="px-4 py-2">{t("finance.totalPending")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={r.memberId}
-                  className="border-t border-slate-100 dark:border-slate-700"
-                >
-                  <td className="px-4 py-2 font-mono">{r.memberCode}</td>
-                  <td className="px-4 py-2">
-                    <Link
-                      href={`/members/${r.memberId}`}
-                      className="text-indigo-600 hover:underline"
-                    >
-                      {r.memberName}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">{r.mobile}</td>
-                  <td className="px-4 py-2">{r.pendingYears}</td>
-                  <td className="px-4 py-2 font-semibold text-red-600">
-                    {formatINR(r.totalPending)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <THead>
+            <TR>
+              <TH>{t("members.memberCode")}</TH>
+              <TH>{t("members.fullName")}</TH>
+              <TH>{t("members.mobile")}</TH>
+              <TH>{t("finance.pendingYears")}</TH>
+              <TH className="text-right">{t("finance.totalPending")}</TH>
+              {canRemind && <TH />}
+            </TR>
+          </THead>
+          <tbody>
+            {rows.map((r) => (
+              <TR key={r.memberId}>
+                <TD className="font-mono">{r.memberCode}</TD>
+                <TD>
+                  <Link
+                    href={`/members/${r.memberId}`}
+                    className="font-medium text-indigo-600 hover:underline"
+                  >
+                    {r.memberName}
+                  </Link>
+                </TD>
+                <TD className="tabular">{r.mobile}</TD>
+                <TD>{r.pendingYears}</TD>
+                <TD className="text-right tabular font-semibold text-rose-600">
+                  {formatINR(r.totalPending)}
+                </TD>
+                {canRemind && (
+                  <TD>
+                    <WaSendButton
+                      kind="reminder"
+                      id={r.memberId}
+                      label={t("whatsapp.send")}
+                    />
+                  </TD>
+                )}
+              </TR>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   );

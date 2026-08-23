@@ -1,8 +1,19 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { ReceiptText, Download } from "lucide-react";
+import { getSessionUser } from "@/lib/auth/session";
 import { listReceipts } from "@/features/receipts/query";
 import { Link } from "@/i18n/navigation";
-import { PageHeader } from "@/components/ui";
+import {
+  PageHeader,
+  Table,
+  THead,
+  TR,
+  TH,
+  TD,
+  EmptyState,
+} from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
+import { WaSendButton } from "@/features/whatsapp/components/WaSendButton";
 
 export default async function ReceiptsPage({
   params,
@@ -12,61 +23,73 @@ export default async function ReceiptsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const me = await getSessionUser();
+  const canSend = !!me?.permissions.includes("whatsapp.send");
   const receipts = await listReceipts();
   const pfx = locale === "en" ? "" : `/${locale}`;
 
   return (
     <div>
       <PageHeader title={t("receipts.title")} />
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-700/40">
-            <tr>
-              <th className="px-4 py-2">{t("receipts.receiptNo")}</th>
-              <th className="px-4 py-2">{t("receipts.date")}</th>
-              <th className="px-4 py-2">{t("receipts.member")}</th>
-              <th className="px-4 py-2">{t("receipts.amount")}</th>
-              <th className="px-4 py-2">{t("receipts.mode")}</th>
-              <th className="px-4 py-2">{t("common.actions")}</th>
-            </tr>
-          </thead>
+      {receipts.length === 0 ? (
+        <EmptyState
+          icon={<ReceiptText className="h-6 w-6" />}
+          title={t("receipts.title")}
+        />
+      ) : (
+        <Table>
+          <THead>
+            <TR>
+              <TH>{t("receipts.receiptNo")}</TH>
+              <TH>{t("receipts.date")}</TH>
+              <TH>{t("receipts.member")}</TH>
+              <TH className="text-right">{t("receipts.amount")}</TH>
+              <TH>{t("receipts.mode")}</TH>
+              <TH />
+            </TR>
+          </THead>
           <tbody>
             {receipts.map((r) => (
-              <tr
-                key={r.id}
-                className="border-t border-slate-100 dark:border-slate-700"
-              >
-                <td className="px-4 py-2 font-mono">{r.receiptNumber}</td>
-                <td className="px-4 py-2">
-                  {new Date(r.receiptDate).toLocaleDateString("en-IN")}
-                </td>
-                <td className="px-4 py-2">
+              <TR key={r.id}>
+                <TD className="font-mono">{r.receiptNumber}</TD>
+                <TD>{new Date(r.receiptDate).toLocaleDateString("en-IN")}</TD>
+                <TD>
                   <Link
                     href={`/members/${r.memberId}`}
-                    className="text-indigo-600 hover:underline"
+                    className="font-medium text-indigo-600 hover:underline"
                   >
                     {r.member.fullName}
                   </Link>
-                </td>
-                <td className="px-4 py-2">
+                </TD>
+                <TD className="text-right tabular font-medium">
                   {formatINR(r.payment.amount.toString())}
-                </td>
-                <td className="px-4 py-2">{r.payment.paymentMode.name}</td>
-                <td className="px-4 py-2">
-                  <a
-                    href={`${pfx}/receipts/${r.id}/pdf`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-indigo-600 hover:underline"
-                  >
-                    {t("receipts.downloadPdf")}
-                  </a>
-                </td>
-              </tr>
+                </TD>
+                <TD>{r.payment.paymentMode.name}</TD>
+                <TD>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <a
+                      href={`${pfx}/receipts/${r.id}/pdf`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {t("receipts.downloadPdf")}
+                    </a>
+                    {canSend && (
+                      <WaSendButton
+                        kind="receipt"
+                        id={r.id}
+                        label={t("whatsapp.send")}
+                      />
+                    )}
+                  </div>
+                </TD>
+              </TR>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      )}
     </div>
   );
 }
