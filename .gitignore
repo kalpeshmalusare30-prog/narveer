@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+.env
+.env.test
+.env*.local
+/coverage
+/uploads
+/uploads-test
+/.localpg
+*.log
+/test-results
+/playwright-report
+/playwright/.cache
+next-env.d.ts
+.superpowers

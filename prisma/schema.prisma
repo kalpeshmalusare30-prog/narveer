@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                   String   @id @default(cuid())
+  name                 String
+  shortName            String
+  logoRef              String?
+  address              String?
+  city                 String?
+  state                String?
+  pinCode              String?
+  contactNumber        String?
+  email                String?
+  website              String?
+  registrationNumber   String?
+  financialYearStart   Int      @default(4)
+  financialYearEnd     Int      @default(3)
+  defaultMembershipFee Decimal  @default(0) @db.Decimal(12, 2)
+  receiptNumberPrefix  String   @default("RCPT")
+  memberCodePrefix     String   @default("M")
+  memberCodeSeq        Int      @default(0)
+  defaultLocale        String   @default("en")
+  setupCompleted       Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  users           User[]
+  roles           Role[]
+  members         Member[]
+  membershipTypes MembershipType[]
+  memberStatuses  MemberStatus[]
+
+  @@unique([shortName])
+}
+
+model User {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  fullName       String
+  loginId        String        @unique
+  email          String?
+  mobile         String?
+  passwordHash   String
+  isSuperAdmin   Boolean       @default(false)
+  isActive       Boolean       @default(true)
+  locale         String        @default("en")
+  lastLoginAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  userRoles UserRole[]
+
+  @@index([organizationId])
+}
+
+model Role {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  description    String?
+  isSystem       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Permission {
+  key             String           @id
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  roleId        String
+  permissionKey String
+  role          Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission    Permission @relation(fields: [permissionKey], references: [key])
+
+  @@id([roleId, permissionKey])
+  @@index([roleId])
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model MembershipType {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  isActive       Boolean      @default(true)
+  members        Member[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model MemberStatus {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  isTerminal     Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  members        Member[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Member {
+  id               String          @id @default(cuid())
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  memberCode       String
+  fullName         String
+  mobile           String
+  whatsappNumber   String?
+  alternateMobile  String?
+  email            String?
+  address          String?
+  area             String?
+  dateOfBirth      DateTime?
+  joiningDate      DateTime        @default(now())
+  membershipTypeId String?
+  membershipType   MembershipType? @relation(fields: [membershipTypeId], references: [id])
+  statusId         String
+  status           MemberStatus    @relation(fields: [statusId], references: [id])
+  notes            String?
+  photoRef         String?
+  isActive         Boolean         @default(true)
+  createdBy        String?
+  updatedBy        String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([organizationId, memberCode])
+  @@index([organizationId])
+  @@index([organizationId, fullName])
+  @@index([organizationId, mobile])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String?
+  userId         String?
+  action         String
+  module         String
+  recordType     String
+  recordId       String
+  oldValue       Json?
+  newValue       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([recordType, recordId])
+}
