@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const memberInput = z.object({
   fullName: z.string().trim().min(1, "Required"),
-  mobile: z.string().trim().min(1, "Required"),
+  mobile: z.string().trim().optional().nullable(),
   whatsappNumber: z.string().trim().optional().nullable(),
   alternateMobile: z.string().trim().optional().nullable(),
   email: z.string().trim().optional().nullable(),

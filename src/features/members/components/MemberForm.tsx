@@ -18,7 +18,7 @@ type Option = { id: string; name: string };
 export type MemberFormData = {
   id: string;
   fullName: string;
-  mobile: string;
+  mobile?: string | null;
   whatsappNumber?: string | null;
   alternateMobile?: string | null;
   email?: string | null;
@@ -68,13 +68,8 @@ export function MemberForm({
             required
           />
         </Field>
-        <Field label={t("members.mobile")} htmlFor="mobile" required>
-          <Input
-            id="mobile"
-            name="mobile"
-            defaultValue={member?.mobile ?? ""}
-            required
-          />
+        <Field label={t("members.mobile")} htmlFor="mobile">
+          <Input id="mobile" name="mobile" defaultValue={member?.mobile ?? ""} />
         </Field>
         <Field label={t("members.whatsapp")} htmlFor="whatsappNumber">
           <Input

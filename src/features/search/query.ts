@@ -3,7 +3,12 @@ import { runWithTenant } from "@/lib/db/tenant-context";
 import { db } from "@/lib/db/prisma";
 
 export type SearchResults = {
-  members: { id: string; fullName: string; memberCode: string; mobile: string }[];
+  members: {
+    id: string;
+    fullName: string;
+    memberCode: string;
+    mobile: string | null;
+  }[];
   receipts: { id: string; receiptNumber: string; memberName: string }[];
 };
 

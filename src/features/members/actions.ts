@@ -32,7 +32,7 @@ export async function createMember(input: MemberInput) {
         organizationId: ctx.organizationId,
         memberCode,
         fullName: data.fullName,
-        mobile: data.mobile,
+        mobile: data.mobile ?? null,
         whatsappNumber: data.whatsappNumber ?? null,
         alternateMobile: data.alternateMobile ?? null,
         email: data.email ?? null,
@@ -68,7 +68,7 @@ export async function updateMember(id: string, input: MemberInput) {
       where: { id },
       data: {
         fullName: data.fullName,
-        mobile: data.mobile,
+        mobile: data.mobile ?? null,
         whatsappNumber: data.whatsappNumber ?? null,
         alternateMobile: data.alternateMobile ?? null,
         email: data.email ?? null,
@@ -129,7 +129,7 @@ export async function saveMemberForm(
   const id = opt(formData, "id");
   const input: MemberInput = {
     fullName: str(formData, "fullName"),
-    mobile: str(formData, "mobile"),
+    mobile: opt(formData, "mobile"),
     whatsappNumber: opt(formData, "whatsappNumber"),
     alternateMobile: opt(formData, "alternateMobile"),
     email: opt(formData, "email"),

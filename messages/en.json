@@ -182,7 +182,11 @@
     "token": "Access Token",
     "enabled": "Enabled",
     "saved": "WhatsApp settings saved",
-    "templates": "Message Templates"
+    "templates": "Message Templates",
+    "webhook": "Delivery Webhook",
+    "webhookUrl": "Callback URL",
+    "verifyToken": "Verify Token",
+    "webhookHint": "In Meta → WhatsApp → Configuration, set this Callback URL and Verify Token to receive Sent / Delivered / Read / Failed status updates."
   },
   "reports": {
     "title": "Reports",

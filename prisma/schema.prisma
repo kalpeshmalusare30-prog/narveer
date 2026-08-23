@@ -154,7 +154,7 @@ model Member {
   organization     Organization    @relation(fields: [organizationId], references: [id])
   memberCode       String
   fullName         String
-  mobile           String
+  mobile           String?
   whatsappNumber   String?
   alternateMobile  String?
   email            String?

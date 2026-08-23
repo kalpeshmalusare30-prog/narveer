@@ -173,12 +173,19 @@ oldest-dues-first. Under **Import Data** (permission `data.import`).
 - **Theme:** forced light theme; the accent palette is rebranded to the
   organization logo's vermilion/saffron (single source in `globals.css`).
 
+## WhatsApp delivery webhook (delivered)
+
+`GET/POST /api/whatsapp/webhook` — Meta verification handshake (verify token via
+`WHATSAPP_VERIFY_TOKEN`) and status callbacks that advance a message
+Sent → Delivered → Read (monotonic; never downgraded) and record failures,
+matched by provider message id. The Callback URL + Verify Token are shown on
+**Settings → WhatsApp**. Members may exist without a mobile number (real
+membership lists often do); WhatsApp/search/UI all handle that.
+
 ## Roadmap (remaining)
 
-- WhatsApp delivery-status webhooks (Sent → Delivered → Read) — outbound
-  sending is real once credentials are configured; inbound status callbacks are
-  not wired yet.
 - Real-time push for notifications (currently refreshed per navigation).
+- Additional BSP providers (only Meta Cloud API is implemented).
 - **Phase 4 — Money & Insight:** income, expenses, dashboard, reports
   (PDF/Excel), search & filters, notifications.
 - **Phase 5 — Data & Governance:** Excel/CSV import (validation + dedup),

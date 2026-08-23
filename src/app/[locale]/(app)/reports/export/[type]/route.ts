@@ -55,7 +55,7 @@ export async function GET(
         rows.map((r) => [
           r.memberCode,
           r.memberName,
-          r.mobile,
+          r.mobile ?? "",
           r.pendingYears,
           r.totalPending,
         ]),

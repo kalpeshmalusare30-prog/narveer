@@ -180,7 +180,7 @@ export type PendingDuesRow = {
   memberId: string;
   memberName: string;
   memberCode: string;
-  mobile: string;
+  mobile: string | null;
   pendingYears: number;
   totalPending: string;
 };

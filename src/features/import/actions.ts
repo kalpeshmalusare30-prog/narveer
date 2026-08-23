@@ -38,10 +38,13 @@ async function importMembers(
   dryRun: boolean,
 ): Promise<ImportResult> {
   const existing = await db.member.findMany({
-    select: { memberCode: true, mobile: true },
+    select: { memberCode: true, mobile: true, fullName: true },
   });
   const codes = new Set(existing.map((m) => m.memberCode.toLowerCase()));
-  const mobiles = new Set(existing.map((m) => m.mobile));
+  const mobiles = new Set(
+    existing.map((m) => m.mobile).filter(Boolean) as string[],
+  );
+  const names = new Set(existing.map((m) => m.fullName.toLowerCase()));
   const statuses = await db.memberStatus.findMany();
   const statusByName = new Map(statuses.map((s) => [s.name.toLowerCase(), s]));
   const defaultStatus = statuses.find((s) => !s.isTerminal) ?? statuses[0];
@@ -61,8 +64,8 @@ async function importMembers(
     const code = pick(row, ["memberid", "membercode", "code"]);
     const label = name || code || `Row ${i + 2}`;
 
-    if (!name || !mobile) {
-      out.push({ index: i, label, status: "error", message: "Name and mobile are required" });
+    if (!name) {
+      out.push({ index: i, label, status: "error", message: "Name is required" });
       err++;
       continue;
     }
@@ -71,8 +74,11 @@ async function importMembers(
       err++;
       continue;
     }
+    const nameKey = name.toLowerCase();
     const isDup =
-      (code && codes.has(code.toLowerCase())) || (!code && mobiles.has(mobile));
+      (code && codes.has(code.toLowerCase())) ||
+      (!code && mobile && mobiles.has(mobile)) ||
+      (!code && !mobile && names.has(nameKey));
     if (isDup) {
       out.push({ index: i, label, status: "duplicate", message: "Already exists" });
       dup++;
@@ -89,7 +95,7 @@ async function importMembers(
             organizationId: ctx.organizationId,
             memberCode,
             fullName: name,
-            mobile,
+            mobile: mobile || null,
             whatsappNumber: pick(row, ["whatsapp", "whatsappnumber"]) || null,
             email: pick(row, ["email"]) || null,
             address: pick(row, ["address"]) || null,
@@ -110,7 +116,8 @@ async function importMembers(
       }
     }
     if (code) codes.add(code.toLowerCase());
-    mobiles.add(mobile);
+    if (mobile) mobiles.add(mobile);
+    names.add(nameKey);
     out.push({ index: i, label, status: "ok" });
     ok++;
   }
@@ -127,7 +134,7 @@ async function buildMemberMaps() {
   const byName = new Map<string, string>();
   for (const m of members) {
     byCode.set(m.memberCode.toLowerCase(), m.id);
-    byMobile.set(m.mobile, m.id);
+    if (m.mobile) byMobile.set(m.mobile, m.id);
     byName.set(m.fullName.toLowerCase(), m.id);
   }
   return { byCode, byMobile, byName };

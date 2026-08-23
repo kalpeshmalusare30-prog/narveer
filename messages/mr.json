@@ -182,7 +182,11 @@
     "token": "अ‍ॅक्सेस टोकन",
     "enabled": "सक्षम",
     "saved": "व्हॉट्सअ‍ॅप सेटिंग्ज जतन झाल्या",
-    "templates": "संदेश साचे"
+    "templates": "संदेश साचे",
+    "webhook": "डिलिव्हरी वेबहूक",
+    "webhookUrl": "कॉलबॅक URL",
+    "verifyToken": "व्हेरिफाय टोकन",
+    "webhookHint": "Meta → WhatsApp → Configuration मध्ये हे कॉलबॅक URL व व्हेरिफाय टोकन सेट करा — Sent / Delivered / Read / Failed स्थिती अद्यतने मिळतील."
   },
   "reports": {
     "title": "अहवाल",

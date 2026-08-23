@@ -135,7 +135,7 @@ export async function sendPendingReminder(memberId: string) {
     });
     return recordAndSend(ctx, {
       memberId,
-      toNumber: member.whatsappNumber || member.mobile,
+      toNumber: member.whatsappNumber || member.mobile || "",
       type: "reminder",
       content,
     });
@@ -171,7 +171,7 @@ export async function sendPaymentConfirmation(paymentId: string) {
     });
     return recordAndSend(ctx, {
       memberId: payment.memberId,
-      toNumber: payment.member.whatsappNumber || payment.member.mobile,
+      toNumber: payment.member.whatsappNumber || payment.member.mobile || "",
       type: "confirmation",
       content,
       related: {
@@ -203,7 +203,7 @@ export async function shareReceipt(receiptId: string) {
     });
     return recordAndSend(ctx, {
       memberId: receipt.memberId,
-      toNumber: receipt.member.whatsappNumber || receipt.member.mobile,
+      toNumber: receipt.member.whatsappNumber || receipt.member.mobile || "",
       type: "receipt",
       content,
       related: { relatedReceiptId: receipt.id, relatedPaymentId: receipt.paymentId },
