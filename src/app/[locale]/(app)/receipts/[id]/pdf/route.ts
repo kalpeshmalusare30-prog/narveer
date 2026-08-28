@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getReceiptForPdf } from "@/features/receipts/query";
 import { rawDb } from "@/lib/db/raw";
 import { renderReceiptPdf } from "@/lib/pdf/receipt";
+import { memberName } from "@/features/members/name";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export async function GET(
     },
     receiptNumber: receipt.receiptNumber,
     receiptDate: new Date(receipt.receiptDate).toLocaleDateString("en-IN"),
-    memberName: receipt.member.fullName,
+    memberName: memberName(receipt.member, locale),
     memberCode: receipt.member.memberCode,
     modeName: receipt.payment.paymentMode.name,
     referenceNumber: receipt.payment.referenceNumber,

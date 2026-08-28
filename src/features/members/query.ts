@@ -19,6 +19,7 @@ export async function listMembers(params: MemberListParams) {
       const q = params.q.trim();
       where.OR = [
         { fullName: { contains: q, mode: "insensitive" } },
+        { fullNameEn: { contains: q, mode: "insensitive" } },
         { memberCode: { contains: q, mode: "insensitive" } },
         { mobile: { contains: q, mode: "insensitive" } },
       ];
@@ -52,12 +53,12 @@ export async function getMember(id: string) {
 }
 
 export async function listActiveMembers(): Promise<
-  { id: string; fullName: string; memberCode: string }[]
+  { id: string; fullName: string; fullNameEn: string | null; memberCode: string }[]
 > {
   return withAction({ permission: "member.view" }, async () =>
     db.member.findMany({
       where: { isActive: true },
-      select: { id: true, fullName: true, memberCode: true },
+      select: { id: true, fullName: true, fullNameEn: true, memberCode: true },
       orderBy: { fullName: "asc" },
     }),
   );

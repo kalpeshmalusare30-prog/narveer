@@ -12,6 +12,7 @@ import {
   memberReport,
 } from "@/features/reports/query";
 import { getFinancialSummary } from "@/features/finance/money-query";
+import { memberName } from "@/features/members/name";
 import {
   PageHeader,
   StatCard,
@@ -160,7 +161,9 @@ export default async function ReportsPage({
                     <td className="px-4 py-2.5 font-medium tabular">
                       {m.memberCode}
                     </td>
-                    <td className="px-4 py-2.5">{m.name}</td>
+                    <td className="px-4 py-2.5">
+                      {memberName({ fullName: m.name, fullNameEn: m.fullNameEn }, locale)}
+                    </td>
                     <td className="px-4 py-2.5 tabular text-slate-500">
                       {m.mobile || "—"}
                     </td>

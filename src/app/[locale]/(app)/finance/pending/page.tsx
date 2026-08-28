@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { CheckCircle2 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/session";
 import { listPendingDues } from "@/features/finance/fee-query";
+import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
 import {
   PageHeader,
@@ -56,7 +57,7 @@ export default async function PendingDuesPage({
                     href={`/members/${r.memberId}`}
                     className="font-medium text-indigo-600 hover:underline"
                   >
-                    {r.memberName}
+                    {memberName({ fullName: r.memberName, fullNameEn: r.memberNameEn }, locale)}
                   </Link>
                 </TD>
                 <TD className="tabular">{r.mobile}</TD>

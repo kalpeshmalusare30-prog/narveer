@@ -113,6 +113,7 @@ export async function expenseByCategoryReport(): Promise<NameTotalRow[]> {
 export type MemberReportRow = {
   memberCode: string;
   name: string;
+  fullNameEn: string | null;
   mobile: string;
   expected: string;
   paid: string;
@@ -127,6 +128,7 @@ export async function memberReport(): Promise<MemberReportRow[]> {
       select: {
         memberCode: true,
         fullName: true,
+        fullNameEn: true,
         mobile: true,
         annualFees: {
           select: {
@@ -155,6 +157,7 @@ export async function memberReport(): Promise<MemberReportRow[]> {
       return {
         memberCode: m.memberCode,
         name: m.fullName,
+        fullNameEn: m.fullNameEn,
         mobile: m.mobile ?? "",
         expected: expected.toString(),
         paid: paid.toString(),

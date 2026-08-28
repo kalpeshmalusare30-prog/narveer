@@ -6,10 +6,16 @@ export type SearchResults = {
   members: {
     id: string;
     fullName: string;
+    fullNameEn: string | null;
     memberCode: string;
     mobile: string | null;
   }[];
-  receipts: { id: string; receiptNumber: string; memberName: string }[];
+  receipts: {
+    id: string;
+    receiptNumber: string;
+    memberName: string;
+    memberNameEn: string | null;
+  }[];
 };
 
 export async function globalSearch(q: string): Promise<SearchResults> {
@@ -26,13 +32,20 @@ export async function globalSearch(q: string): Promise<SearchResults> {
             where: {
               OR: [
                 { fullName: { contains: term, mode: "insensitive" } },
+                { fullNameEn: { contains: term, mode: "insensitive" } },
                 { memberCode: { contains: term, mode: "insensitive" } },
                 { mobile: { contains: term, mode: "insensitive" } },
               ],
             },
             take: 10,
             orderBy: { fullName: "asc" },
-            select: { id: true, fullName: true, memberCode: true, mobile: true },
+            select: {
+              id: true,
+              fullName: true,
+              fullNameEn: true,
+              memberCode: true,
+              mobile: true,
+            },
           })
         : [];
       const receiptRows = user.permissions.includes("receipt.view")
@@ -40,7 +53,9 @@ export async function globalSearch(q: string): Promise<SearchResults> {
             where: { receiptNumber: { contains: term, mode: "insensitive" } },
             take: 10,
             orderBy: { createdAt: "desc" },
-            include: { member: { select: { fullName: true } } },
+            include: {
+              member: { select: { fullName: true, fullNameEn: true } },
+            },
           })
         : [];
       return {
@@ -49,6 +64,7 @@ export async function globalSearch(q: string): Promise<SearchResults> {
           id: r.id,
           receiptNumber: r.receiptNumber,
           memberName: r.member.fullName,
+          memberNameEn: r.member.fullNameEn,
         })),
       };
     },

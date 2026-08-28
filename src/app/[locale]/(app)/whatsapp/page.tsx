@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { listMessages, getWhatsAppStatus } from "@/features/whatsapp/query";
 import { listPendingDues } from "@/features/finance/fee-query";
 import { Link } from "@/i18n/navigation";
+import { memberName } from "@/features/members/name";
 import {
   PageHeader,
   Alert,
@@ -35,6 +36,7 @@ export default async function WhatsAppPage({
     ? (await listPendingDues()).map((r) => ({
         memberId: r.memberId,
         memberName: r.memberName,
+        memberNameEn: r.memberNameEn,
         memberCode: r.memberCode,
         totalPending: r.totalPending,
       }))
@@ -93,7 +95,7 @@ export default async function WhatsAppPage({
             {messages.map((m) => (
               <TR key={m.id}>
                 <TD>{new Date(m.createdAt).toLocaleString("en-IN")}</TD>
-                <TD>{m.member?.fullName ?? "—"}</TD>
+                <TD>{m.member ? memberName(m.member, locale) : "—"}</TD>
                 <TD className="capitalize">{m.type}</TD>
                 <TD className="tabular">{m.toNumber}</TD>
                 <TD>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { assignMembersAction } from "@/features/finance/fee-actions";
+import { memberName } from "@/features/members/name";
 import { Button } from "@/components/ui";
 
 export function AssignMembersPanel({
@@ -11,9 +12,15 @@ export function AssignMembersPanel({
   members,
 }: {
   financialYearId: string;
-  members: { id: string; fullName: string; memberCode: string }[];
+  members: {
+    id: string;
+    fullName: string;
+    fullNameEn: string | null;
+    memberCode: string;
+  }[];
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [sel, setSel] = useState<Set<string>>(new Set());
@@ -41,7 +48,7 @@ export function AssignMembersPanel({
               onChange={() => toggle(m.id)}
             />
             <span>
-              {m.fullName}{" "}
+              {memberName(m, locale)}{" "}
               <span className="font-mono text-xs text-slate-400">
                 {m.memberCode}
               </span>

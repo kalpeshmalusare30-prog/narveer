@@ -1,21 +1,24 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { sendBulkRemindersAction } from "@/features/whatsapp/actions";
 import { Button, Card } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
+import { memberName } from "@/features/members/name";
 
 type Row = {
   memberId: string;
   memberName: string;
+  memberNameEn?: string | null;
   memberCode: string;
   totalPending: string;
 };
 
 export function BulkReminderPanel({ members }: { members: Row[] }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
@@ -64,7 +67,9 @@ export function BulkReminderPanel({ members }: { members: Row[] }) {
               checked={sel.has(m.memberId)}
               onChange={() => toggle(m.memberId)}
             />
-            <span className="flex-1">{m.memberName}</span>
+            <span className="flex-1">
+              {memberName({ fullName: m.memberName, fullNameEn: m.memberNameEn }, locale)}
+            </span>
             <span className="tabular text-rose-600">
               {formatINR(m.totalPending)}
             </span>

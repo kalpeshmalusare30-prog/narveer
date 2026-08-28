@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { SearchIcon, Users, ReceiptText } from "lucide-react";
 import { globalSearch } from "@/features/search/query";
+import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
 import { PageHeader, Card, EmptyState, Badge } from "@/components/ui";
 
@@ -45,7 +46,7 @@ export default async function SearchPage({
                     className="flex items-center justify-between px-5 py-3 hover:bg-slate-50"
                   >
                     <span className="font-medium text-slate-800">
-                      {m.fullName}
+                      {memberName(m, locale)}
                     </span>
                     <span className="flex items-center gap-3 text-sm text-slate-500">
                       <span className="tabular">{m.mobile}</span>
@@ -72,7 +73,10 @@ export default async function SearchPage({
                       {r.receiptNumber}
                     </span>
                     <span className="text-sm text-slate-500">
-                      {r.memberName}
+                      {memberName(
+                        { fullName: r.memberName, fullNameEn: r.memberNameEn },
+                        locale,
+                      )}
                     </span>
                   </Link>
                 ))}

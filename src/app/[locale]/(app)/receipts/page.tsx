@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ReceiptText, Download } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/session";
 import { listReceipts } from "@/features/receipts/query";
+import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
 import {
   PageHeader,
@@ -58,7 +59,7 @@ export default async function ReceiptsPage({
                     href={`/members/${r.memberId}`}
                     className="font-medium text-indigo-600 hover:underline"
                   >
-                    {r.member.fullName}
+                    {memberName(r.member, locale)}
                   </Link>
                 </TD>
                 <TD className="text-right tabular font-medium">

@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { CreditCard } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/session";
 import { listPayments } from "@/features/payments/query";
+import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
 import {
   PageHeader,
@@ -73,7 +74,7 @@ export default async function PaymentsPage({
                     href={`/members/${p.memberId}`}
                     className="font-medium text-indigo-600 hover:underline"
                   >
-                    {p.member.fullName}
+                    {memberName(p.member, locale)}
                   </Link>
                 </TD>
                 <TD className="text-right tabular font-medium">

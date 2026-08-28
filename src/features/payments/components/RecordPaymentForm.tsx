@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   recordPayment,
   loadMemberPendingFees,
 } from "@/features/payments/actions";
 import { Button, Input, Select, Field, Alert, Card } from "@/components/ui";
+import { memberName } from "@/features/members/name";
 
-type Member = { id: string; fullName: string; memberCode: string };
+type Member = {
+  id: string;
+  fullName: string;
+  fullNameEn: string | null;
+  memberCode: string;
+};
 type Mode = { id: string; name: string };
 type Fee = { id: string; yearLabel: string; pending: string };
 
@@ -21,6 +27,7 @@ export function RecordPaymentForm({
   modes: Mode[];
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [memberId, setMemberId] = useState("");
@@ -100,7 +107,7 @@ export function RecordPaymentForm({
             <option value="">{t("payments.selectMember")}</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.fullName} ({m.memberCode})
+                {memberName(m, locale)} ({m.memberCode})
               </option>
             ))}
           </Select>

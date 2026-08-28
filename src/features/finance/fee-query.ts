@@ -88,6 +88,7 @@ export async function getMemberTotalPending(
 export type YearFeeRow = FeeRow & {
   memberId: string;
   memberName: string;
+  memberNameEn: string | null;
   memberCode: string;
 };
 
@@ -113,6 +114,7 @@ export async function listYearFees(
         status: deriveStatus(f.feeAmount, p, f.status),
         memberId: f.memberId,
         memberName: f.member.fullName,
+        memberNameEn: f.member.fullNameEn,
         memberCode: f.member.memberCode,
       };
     });
@@ -160,7 +162,9 @@ export async function getYearCollection(
 
 export async function listAssignableMembers(
   financialYearId: string,
-): Promise<{ id: string; fullName: string; memberCode: string }[]> {
+): Promise<
+  { id: string; fullName: string; fullNameEn: string | null; memberCode: string }[]
+> {
   return withAction({ permission: "fee.assign" }, async () => {
     const assigned = await db.annualFee.findMany({
       where: { financialYearId },
@@ -169,7 +173,7 @@ export async function listAssignableMembers(
     const have = new Set(assigned.map((a) => a.memberId));
     const members = await db.member.findMany({
       where: { isActive: true },
-      select: { id: true, fullName: true, memberCode: true },
+      select: { id: true, fullName: true, fullNameEn: true, memberCode: true },
       orderBy: { fullName: "asc" },
     });
     return members.filter((m) => !have.has(m.id));
@@ -179,6 +183,7 @@ export async function listAssignableMembers(
 export type PendingDuesRow = {
   memberId: string;
   memberName: string;
+  memberNameEn: string | null;
   memberCode: string;
   mobile: string | null;
   pendingYears: number;
@@ -213,6 +218,7 @@ export async function listPendingDues(): Promise<PendingDuesRow[]> {
       .map((e) => ({
         memberId: e.m.id,
         memberName: e.m.fullName,
+        memberNameEn: e.m.fullNameEn,
         memberCode: e.m.memberCode,
         mobile: e.m.mobile,
         pendingYears: e.years,

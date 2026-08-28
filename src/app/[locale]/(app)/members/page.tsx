@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { listMembers, getMemberRefData } from "@/features/members/query";
+import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
 import { PageHeader, Button, StatusBadge } from "@/components/ui";
 import { MemberFilters } from "@/features/members/components/MemberFilters";
@@ -89,7 +90,7 @@ export default async function MembersPage({
                       className="font-medium text-indigo-600 hover:underline"
                       href={`/members/${m.id}`}
                     >
-                      {m.fullName}
+                      {memberName(m, locale)}
                     </Link>
                   </td>
                   <td className="px-4 py-2 tabular text-slate-600 dark:text-slate-300">

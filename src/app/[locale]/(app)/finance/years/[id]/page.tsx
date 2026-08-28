@@ -7,6 +7,7 @@ import {
   listYearFees,
   listAssignableMembers,
 } from "@/features/finance/fee-query";
+import { memberName } from "@/features/members/name";
 import { PageHeader, Card, Badge, StatusBadge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
 import { GenerateAllButton } from "@/features/finance/components/GenerateAllButton";
@@ -83,7 +84,9 @@ export default async function YearDetailPage({
                 className="border-t border-slate-100 dark:border-slate-700"
               >
                 <td className="px-4 py-2 font-mono">{f.memberCode}</td>
-                <td className="px-4 py-2">{f.memberName}</td>
+                <td className="px-4 py-2">
+                  {memberName({ fullName: f.memberName, fullNameEn: f.memberNameEn }, locale)}
+                </td>
                 <td className="px-4 py-2">{formatINR(f.feeAmount)}</td>
                 <td className="px-4 py-2">{formatINR(f.paid)}</td>
                 <td className="px-4 py-2">{formatINR(f.pending)}</td>

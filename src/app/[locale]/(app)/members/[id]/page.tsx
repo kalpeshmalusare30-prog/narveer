@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getMember } from "@/features/members/query";
+import { memberName } from "@/features/members/name";
 import { getSessionUser } from "@/lib/auth/session";
 import { listMemberFees, getMemberTotalPending } from "@/features/finance/fee-query";
 import { listMemberPayments } from "@/features/payments/query";
@@ -54,7 +55,7 @@ export default async function MemberProfilePage({
 
   const personal = (
     <Card>
-      <Row label={t("members.fullName")} value={member!.fullName} />
+      <Row label={t("members.fullName")} value={memberName(member!, locale)} />
       <Row label={t("members.mobile")} value={member!.mobile} />
       <Row label={t("members.whatsapp")} value={member!.whatsappNumber} />
       <Row label={t("members.alternateMobile")} value={member!.alternateMobile} />
@@ -179,7 +180,7 @@ export default async function MemberProfilePage({
   return (
     <div>
       <PageHeader
-        title={member!.fullName}
+        title={memberName(member!, locale)}
         actions={
           canEdit ? (
             <Link href={`/members/${member!.id}/edit`}>
