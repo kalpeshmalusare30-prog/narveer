@@ -5,7 +5,6 @@ import { PrismaClient } from "@prisma/client";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { hashPassword } from "../src/lib/auth/password";
-import { LocalStorageProvider } from "../src/lib/storage/local";
 import { provisionOrgDefaults } from "../src/lib/org/provision";
 
 const db = new PrismaClient();
@@ -43,14 +42,14 @@ export async function seed(): Promise<void> {
     },
   });
 
-  // 2b. Organization logo (optional; from project-root logo.png)
+  // 2b. Organization logo (optional; from project-root logo.png).
+  // Stored as a base64 data URI directly on the org row so it works on
+  // serverless hosts (Vercel) with no persistent filesystem.
   try {
     const logo = await readFile(path.join(process.cwd(), "logo.png"));
-    const storage = new LocalStorageProvider();
-    const ref = await storage.save("logos/ntmp.png", logo);
     await db.organization.update({
       where: { id: org.id },
-      data: { logoRef: ref },
+      data: { logoDataUri: `data:image/png;base64,${logo.toString("base64")}` },
     });
   } catch {
     // logo is optional

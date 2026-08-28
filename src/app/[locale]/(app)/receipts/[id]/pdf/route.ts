@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { getReceiptForPdf } from "@/features/receipts/query";
 import { rawDb } from "@/lib/db/raw";
-import { storage } from "@/lib/storage";
 import { renderReceiptPdf } from "@/lib/pdf/receipt";
 
 export const dynamic = "force-dynamic";
@@ -25,15 +24,7 @@ export async function GET(
   });
   if (!org) return new Response("Not found", { status: 404 });
 
-  let logoDataUri: string | undefined;
-  if (org.logoRef) {
-    try {
-      const buf = await storage.read(org.logoRef);
-      logoDataUri = `data:image/png;base64,${buf.toString("base64")}`;
-    } catch {
-      /* logo optional */
-    }
-  }
+  const logoDataUri: string | undefined = org.logoDataUri ?? undefined;
 
   let collectedByName: string | null = null;
   if (receipt.payment.collectedBy) {

@@ -3,7 +3,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth/session";
 import { rawDb } from "@/lib/db/raw";
-import { storage } from "@/lib/storage";
 import { AppShell } from "@/components/shell/AppShell";
 import { unreadNotificationCount } from "@/features/notifications/query";
 
@@ -28,10 +27,10 @@ export default async function AppLayout({
   if (user!.organizationId) {
     const org = await rawDb.organization.findUnique({
       where: { id: user!.organizationId },
-      select: { name: true, logoRef: true },
+      select: { name: true, logoDataUri: true },
     });
     orgName = org?.name ?? "";
-    logoUrl = org?.logoRef ? storage.url(org.logoRef) : null;
+    logoUrl = org?.logoDataUri ?? null;
   } else {
     const t = await getTranslations("app");
     orgName = t("name");

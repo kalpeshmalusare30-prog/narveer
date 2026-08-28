@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,6 +17,9 @@
     "seed": "tsx prisma/seed.ts",
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
