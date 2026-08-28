@@ -4,10 +4,9 @@
    which we never add — so the app is always light. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Rebrand the accent to the organization logo's vermilion/saffron by
-   remapping the palette the UI already uses (indigo → brand). No component
-   changes needed; opacity variants derive from the 500 value. */
 @theme {
+  /* Accent → the organization logo's vermilion/saffron (remaps indigo, which
+     the UI kit uses). Opacity variants derive from the 500 value. */
   --color-indigo-50: #fff4ef;
   --color-indigo-100: #ffe3d6;
   --color-indigo-200: #ffcbb2;
@@ -18,15 +17,31 @@
   --color-indigo-700: #b8330d;
   --color-indigo-800: #932a0e;
   --color-indigo-900: #7a2611;
+
+  /* Neutrals are WARM greys (remaps the cool "slate" the UI kit uses) so
+     borders/text/surfaces harmonise with the warm vermilion ground instead of
+     reading cool-and-templated. */
+  --color-slate-50: #faf7f5;
+  --color-slate-100: #f4efeb;
+  --color-slate-200: #eae3dd;
+  --color-slate-300: #dbd2ca;
+  --color-slate-400: #a99f97;
+  --color-slate-500: #7c736c;
+  --color-slate-600: #5a534d;
+  --color-slate-700: #45403b;
+  --color-slate-800: #2b2724;
+  --color-slate-900: #1c1917;
+
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
 }
 
 :root {
   color-scheme: light;
-  --bg: #f8f5f2;
+  --bg: #f7f3ef;
   --surface: #ffffff;
   --text: #1c1917;
-  --muted: #78716c;
-  --border: #eee7e0;
+  --muted: #7c736c;
+  --border: #eae3dd;
   --brand: #e0400f;
 }
 
@@ -41,16 +56,36 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Tighter, more deliberate headings. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.014em;
+}
+
+/* Soft, layered elevation for cards / tables / popovers (light comes from
+   above; warm-tinted shadow to match the ground). */
+.elev {
+  box-shadow:
+    0 1px 2px rgba(28, 25, 23, 0.04),
+    0 6px 16px -10px rgba(28, 25, 23, 0.12);
+}
+.elev-lg {
+  box-shadow:
+    0 2px 4px rgba(28, 25, 23, 0.05),
+    0 16px 40px -16px rgba(28, 25, 23, 0.2);
+}
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d6cfc8 transparent;
+  scrollbar-color: #d8cfc7 transparent;
 }
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #d6cfc8;
+  background: #d8cfc7;
   border-radius: 9999px;
   border: 3px solid transparent;
   background-clip: content-box;
