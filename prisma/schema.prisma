@@ -36,6 +36,19 @@ model Organization {
   whatsappPhoneId      String?
   whatsappToken        String?
   whatsappConfigured   Boolean  @default(false)
+  // Online payments: UPI needs no external API (deep link + QR); a gateway needs keys.
+  upiId                    String?
+  upiPayeeName             String?
+  paymentGatewayProvider   String?
+  paymentGatewayKeyId      String?
+  paymentGatewayConfigured Boolean @default(false)
+  // SMS + Email channels (provider-agnostic; unconfigured until keys are set).
+  smsProvider          String?
+  smsSenderId          String?
+  smsConfigured        Boolean  @default(false)
+  emailProvider        String?
+  emailFromAddress     String?
+  emailConfigured      Boolean  @default(false)
   isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -58,6 +71,11 @@ model Organization {
   whatsappTemplates  WhatsAppTemplate[]
   whatsappMessages   WhatsAppMessage[]
   notifications      Notification[]
+  events             Event[]
+  eventAttendances   EventAttendance[]
+  donations          Donation[]
+  memberDocuments    MemberDocument[]
+  memberRelations    MemberRelation[]
 
   @@unique([shortName])
 }
@@ -172,6 +190,7 @@ model Member {
   status           MemberStatus    @relation(fields: [statusId], references: [id])
   notes            String?
   photoRef         String?
+  photoDataUri     String?
   isActive         Boolean         @default(true)
   createdBy        String?
   updatedBy        String?
@@ -182,6 +201,11 @@ model Member {
   payments         Payment[]
   receipts         Receipt[]
   whatsappMessages WhatsAppMessage[]
+  eventAttendances EventAttendance[]
+  donations        Donation[]
+  documents        MemberDocument[]
+  relations        MemberRelation[]  @relation("MemberRelations")
+  relatedRelations MemberRelation[]  @relation("RelatedMemberRelations")
 
   @@unique([organizationId, memberCode])
   @@index([organizationId])
@@ -235,6 +259,7 @@ model PaymentMode {
   payments       Payment[]
   incomes        Income[]
   expenses       Expense[]
+  donations      Donation[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -439,4 +464,105 @@ model Notification {
   createdAt      DateTime     @default(now())
 
   @@index([organizationId])
+}
+
+// ---- Phase 6: Events & Meetings ----
+model Event {
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  title          String
+  type           String            @default("Event") // "Event" | "Meeting"
+  eventDate      DateTime
+  location       String?
+  description    String?
+  isCancelled    Boolean           @default(false)
+  createdBy      String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  attendances EventAttendance[]
+
+  @@index([organizationId])
+  @@index([organizationId, eventDate])
+}
+
+model EventAttendance {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  eventId        String
+  event          Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         Member       @relation(fields: [memberId], references: [id])
+  status         String       @default("Present") // Present | Absent | Excused
+  note           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([eventId, memberId])
+  @@index([organizationId])
+  @@index([eventId])
+  @@index([memberId])
+}
+
+// ---- Phase 6: Donations & Sponsorships ----
+model Donation {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  donorName       String
+  memberId        String?
+  member          Member?      @relation(fields: [memberId], references: [id])
+  kind            String       @default("Donation") // Donation | Sponsorship
+  purpose         String?
+  amount          Decimal      @db.Decimal(12, 2)
+  donationDate    DateTime     @default(now())
+  paymentModeId   String?
+  paymentMode     PaymentMode? @relation(fields: [paymentModeId], references: [id])
+  referenceNumber String?
+  receiptNumber   String?
+  notes           String?
+  isVoided        Boolean      @default(false)
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([memberId])
+}
+
+// ---- Phase 6: Member documents (stored as data URIs, serverless-safe) ----
+model MemberDocument {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  memberId       String
+  member         Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  name           String
+  mimeType       String
+  sizeBytes      Int
+  dataUri        String       @db.Text
+  uploadedBy     String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([memberId])
+}
+
+// ---- Phase 6: Member family / relationships (self-relation) ----
+model MemberRelation {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  memberId        String
+  member          Member       @relation("MemberRelations", fields: [memberId], references: [id], onDelete: Cascade)
+  relatedMemberId String
+  relatedMember   Member       @relation("RelatedMemberRelations", fields: [relatedMemberId], references: [id])
+  relationType    String
+  createdAt       DateTime     @default(now())
+
+  @@unique([memberId, relatedMemberId, relationType])
+  @@index([organizationId])
+  @@index([memberId])
 }

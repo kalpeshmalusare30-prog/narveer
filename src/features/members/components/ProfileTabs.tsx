@@ -9,20 +9,27 @@ export function ProfileTabs({
   annualFees,
   payments,
   receipts,
+  documents,
+  family,
 }: {
   personal: ReactNode;
   membership: ReactNode;
   annualFees?: ReactNode;
   payments?: ReactNode;
   receipts?: ReactNode;
+  documents?: ReactNode;
+  family?: ReactNode;
 }) {
   const t = useTranslations("members");
+  const td = useTranslations("documents");
   const content: Record<string, ReactNode | undefined> = {
     personal,
     membership,
     annualFees,
     payments,
     receipts,
+    documents,
+    family,
     whatsappHistory: undefined,
   };
   const tabs = [
@@ -31,6 +38,8 @@ export function ProfileTabs({
     { key: "annualFees", label: t("annualFees") },
     { key: "payments", label: t("payments") },
     { key: "receipts", label: t("receipts") },
+    { key: "documents", label: td("documents") },
+    { key: "family", label: td("family") },
     { key: "whatsappHistory", label: t("whatsappHistory") },
   ];
   const [active, setActive] = useState("personal");

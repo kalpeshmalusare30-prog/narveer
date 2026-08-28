@@ -44,6 +44,11 @@ export const SYSTEM_ROLES: {
       "whatsapp.send",
       "notification.view",
       "data.import",
+      "event.view",
+      "donation.view",
+      "donation.create",
+      "donation.void",
+      "document.view",
     ],
   },
   {
@@ -60,6 +65,9 @@ export const SYSTEM_ROLES: {
       "report.view",
       "whatsapp.view",
       "notification.view",
+      "event.view",
+      "donation.view",
+      "document.view",
     ],
   },
   {

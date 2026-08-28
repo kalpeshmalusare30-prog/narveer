@@ -40,6 +40,14 @@ export const PERMISSIONS = [
   "whatsapp.send",
   "notification.view",
   "data.import",
+  "event.view",
+  "event.manage",
+  "donation.view",
+  "donation.create",
+  "donation.void",
+  "document.view",
+  "document.manage",
+  "communication.manage",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];

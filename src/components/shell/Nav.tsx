@@ -6,12 +6,15 @@ import {
   LayoutDashboard,
   Users,
   CalendarRange,
+  CalendarDays,
   Clock,
   CreditCard,
   ReceiptText,
   TrendingUp,
   TrendingDown,
+  HandCoins,
   MessageCircle,
+  Radio,
   BarChart3,
   UserCog,
   Shield,
@@ -55,12 +58,20 @@ const GROUPS: NavGroup[] = [
       { href: "/receipts", labelKey: "receipts", icon: ReceiptText, permission: "receipt.view" },
       { href: "/finance/income", labelKey: "income", icon: TrendingUp, permission: "income.view" },
       { href: "/finance/expenses", labelKey: "expenses", icon: TrendingDown, permission: "expense.view" },
+      { href: "/donations", labelKey: "donations", icon: HandCoins, permission: "donation.view" },
+    ],
+  },
+  {
+    titleKey: "engagement",
+    items: [
+      { href: "/events", labelKey: "events", icon: CalendarDays, permission: "event.view" },
     ],
   },
   {
     titleKey: "communication",
     items: [
       { href: "/whatsapp", labelKey: "whatsapp", icon: MessageCircle, permission: "whatsapp.view" },
+      { href: "/settings/communication", labelKey: "channels", icon: Radio, permission: "communication.manage" },
     ],
   },
   {

@@ -1,15 +1,19 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { getMember } from "@/features/members/query";
+import { getMember, listActiveMembers } from "@/features/members/query";
 import { memberName } from "@/features/members/name";
 import { getSessionUser } from "@/lib/auth/session";
 import { listMemberFees, getMemberTotalPending } from "@/features/finance/fee-query";
 import { listMemberPayments } from "@/features/payments/query";
+import { listMemberDocuments, listMemberRelations } from "@/features/members/documents";
 import { Link } from "@/i18n/navigation";
 import { PageHeader, Card, Badge, Button, StatusBadge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
 import { ProfileTabs } from "@/features/members/components/ProfileTabs";
 import { VoidMemberButton } from "@/features/members/components/VoidMemberButton";
+import { DocumentsPanel } from "@/features/members/components/DocumentsPanel";
+import { PhotoUpload } from "@/features/members/components/PhotoUpload";
+import { RelationsPanel } from "@/features/members/components/RelationsPanel";
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -41,6 +45,8 @@ export default async function MemberProfilePage({
   const canViewFees = !!user?.permissions.includes("fee.view");
   const canViewPayments = !!user?.permissions.includes("payment.view");
   const canViewReceipts = !!user?.permissions.includes("receipt.view");
+  const canViewDocs = !!user?.permissions.includes("document.view");
+  const canManageDocs = !!user?.permissions.includes("document.manage");
   const fmtDate = (d?: Date | null) =>
     d ? new Date(d).toLocaleDateString("en-IN") : "";
 
@@ -50,6 +56,11 @@ export default async function MemberProfilePage({
     : "0";
   const payments = canViewPayments
     ? await listMemberPayments(member!.id)
+    : [];
+  const documentRows = canViewDocs ? await listMemberDocuments(member!.id) : [];
+  const relations = await listMemberRelations(member!.id);
+  const activeMembers = canEdit
+    ? (await listActiveMembers()).filter((m) => m.id !== member!.id)
     : [];
   const pfx = locale === "en" ? "" : `/${locale}`;
 
@@ -177,16 +188,64 @@ export default async function MemberProfilePage({
     </Card>
   ) : undefined;
 
+  const documentsNode = canViewDocs ? (
+    <DocumentsPanel
+      memberId={member!.id}
+      documents={documentRows.map((d) => ({
+        id: d.id,
+        name: d.name,
+        mimeType: d.mimeType,
+        sizeBytes: d.sizeBytes,
+        createdAt: d.createdAt.toISOString(),
+      }))}
+      canManage={canManageDocs}
+    />
+  ) : undefined;
+
+  const familyNode = (
+    <div className="space-y-6">
+      <PhotoUpload
+        memberId={member!.id}
+        photoDataUri={member!.photoDataUri}
+        canEdit={canEdit}
+      />
+      <RelationsPanel
+        memberId={member!.id}
+        relations={relations.map((r) => ({
+          id: r.id,
+          relationType: r.relationType,
+          relatedMember: {
+            id: r.relatedMember.id,
+            fullName: r.relatedMember.fullName,
+            fullNameEn: r.relatedMember.fullNameEn,
+            memberCode: r.relatedMember.memberCode,
+          },
+        }))}
+        activeMembers={activeMembers}
+        canEdit={canEdit}
+      />
+    </div>
+  );
+
   return (
     <div>
       <PageHeader
         title={memberName(member!, locale)}
         actions={
-          canEdit ? (
-            <Link href={`/members/${member!.id}/edit`}>
-              <Button variant="secondary">{t("common.edit")}</Button>
-            </Link>
-          ) : null
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={`${pfx}/members/${member!.id}/card/pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button variant="secondary">{t("documents.downloadCard")}</Button>
+            </a>
+            {canEdit && (
+              <Link href={`/members/${member!.id}/edit`}>
+                <Button variant="secondary">{t("common.edit")}</Button>
+              </Link>
+            )}
+          </div>
         }
       />
       <div className="mb-4 flex items-center gap-3">
@@ -209,6 +268,8 @@ export default async function MemberProfilePage({
         annualFees={annualFeesNode}
         payments={paymentsNode}
         receipts={receiptsNode}
+        documents={documentsNode}
+        family={familyNode}
       />
     </div>
   );

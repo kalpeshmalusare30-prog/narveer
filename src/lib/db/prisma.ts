@@ -23,6 +23,11 @@ const TENANT_MODELS = new Set([
   "WhatsAppTemplate",
   "WhatsAppMessage",
   "Notification",
+  "Event",
+  "EventAttendance",
+  "Donation",
+  "MemberDocument",
+  "MemberRelation",
 ]);
 
 const WHERE_OPS = new Set([
