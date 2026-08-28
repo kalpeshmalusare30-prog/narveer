@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   sendReminderAction,
+  sendThankYouAction,
   sendConfirmationAction,
   shareReceiptAction,
 } from "@/features/whatsapp/actions";
@@ -15,7 +16,7 @@ export function WaSendButton({
   id,
   label,
 }: {
-  kind: "reminder" | "confirmation" | "receipt";
+  kind: "reminder" | "thankyou" | "confirmation" | "receipt";
   id: string;
   label: string;
 }) {
@@ -35,9 +36,11 @@ export function WaSendButton({
               const r =
                 kind === "reminder"
                   ? await sendReminderAction(id)
-                  : kind === "confirmation"
-                    ? await sendConfirmationAction(id)
-                    : await shareReceiptAction(id);
+                  : kind === "thankyou"
+                    ? await sendThankYouAction(id)
+                    : kind === "confirmation"
+                      ? await sendConfirmationAction(id)
+                      : await shareReceiptAction(id);
               setMsg(r.configured ? t("sent") : t("queued"));
               router.refresh();
             } catch {

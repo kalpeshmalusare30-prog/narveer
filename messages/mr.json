@@ -242,7 +242,7 @@
     "fee": "वर्गणी",
     "paid": "भरले",
     "grandTotal": "एकूण बेरीज",
-    "exportExcel": "CSV निर्यात",
+    "exportExcel": "एक्सेल डाउनलोड",
     "exportPdf": "PDF निर्यात",
     "totalIncome": "एकूण उत्पन्न",
     "totalExpense": "एकूण खर्च",
@@ -342,7 +342,12 @@
     "void": "सभासद रद्द करा",
     "confirmVoid": "हा सभासद निष्क्रिय करायचा?",
     "created": "सभासद तयार झाला",
-    "updated": "सभासद अद्ययावत झाला"
+    "updated": "सभासद अद्ययावत झाला",
+    "payment": "वर्गणी",
+    "paid": "भरले",
+    "unpaid": "बाकी",
+    "remind": "स्मरण",
+    "thanks": "आभार"
   },
   "settings": {
     "title": "सेटिंग्ज",

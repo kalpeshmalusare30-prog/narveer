@@ -9,7 +9,7 @@ import {
   memberReport,
 } from "@/features/reports/query";
 import { listPendingDues } from "@/features/finance/fee-query";
-import { toCsv } from "@/lib/csv";
+import { toXlsx, type Cell } from "@/lib/xlsx";
 
 export const dynamic = "force-dynamic";
 
@@ -19,43 +19,40 @@ export async function GET(
 ) {
   const { type } = await params;
   try {
-    let csv: string;
+    let headers: string[];
+    let data: Cell[][];
+    let sheet = "Report";
+
     if (type === "collection") {
       const rows = await collectionReport();
-      csv = toCsv(
-        ["Financial Year", "Expected", "Collected", "Pending", "Percent"],
-        rows.map((r) => [r.label, r.expected, r.collected, r.pending, r.percent]),
-      );
+      sheet = "Collection";
+      headers = ["Financial Year", "Expected", "Collected", "Pending", "Percent"];
+      data = rows.map((r) => [r.label, r.expected, r.collected, r.pending, r.percent]);
     } else if (type === "payment-modes") {
       const rows = await paymentModeReport();
-      csv = toCsv(
-        ["Mode", "Count", "Total"],
-        rows.map((r) => [r.name, r.count, r.total]),
-      );
+      sheet = "Payment Modes";
+      headers = ["Mode", "Count", "Total"];
+      data = rows.map((r) => [r.name, r.count, r.total]);
     } else if (type === "income") {
       const rows = await incomeByCategoryReport();
-      csv = toCsv(
-        ["Category", "Count", "Total"],
-        rows.map((r) => [r.name, r.count, r.total]),
-      );
+      sheet = "Income";
+      headers = ["Category", "Count", "Total"];
+      data = rows.map((r) => [r.name, r.count, r.total]);
     } else if (type === "expense") {
       const rows = await expenseByCategoryReport();
-      csv = toCsv(
-        ["Category", "Count", "Total"],
-        rows.map((r) => [r.name, r.count, r.total]),
-      );
+      sheet = "Expense";
+      headers = ["Category", "Count", "Total"];
+      data = rows.map((r) => [r.name, r.count, r.total]);
     } else if (type === "expense-yearwise") {
       const rows = await expenseByYearReport();
-      csv = toCsv(
-        ["Year", "Count", "Total"],
-        rows.map((r) => [r.year, r.count, r.total]),
-      );
+      sheet = "Expense by Year";
+      headers = ["Year", "Count", "Total"];
+      data = rows.map((r) => [r.year, r.count, r.total]);
     } else if (type === "whatsapp") {
       const rows = await whatsappReport();
-      csv = toCsv(
-        ["Status", "Count"],
-        rows.map((r) => [r.name, r.count]),
-      );
+      sheet = "WhatsApp";
+      headers = ["Status", "Count"];
+      data = rows.map((r) => [r.name, r.count]);
     } else if (
       type === "members" ||
       type === "members-pending" ||
@@ -68,36 +65,37 @@ export async function GET(
           : type === "members-paid"
             ? all.filter((r) => Number(r.expected) > 0 && Number(r.pending) === 0)
             : all;
-      csv = toCsv(
-        ["Member Code", "Name", "Mobile", "Fee", "Paid", "Pending"],
-        rows.map((r) => [
-          r.memberCode,
-          r.name,
-          r.mobile,
-          r.expected,
-          r.paid,
-          r.pending,
-        ]),
-      );
+      sheet = "Members";
+      headers = ["Member Code", "Name", "Mobile", "Fee", "Paid", "Pending"];
+      data = rows.map((r) => [
+        r.memberCode,
+        r.name,
+        r.mobile,
+        r.expected,
+        r.paid,
+        r.pending,
+      ]);
     } else if (type === "pending") {
       const rows = await listPendingDues();
-      csv = toCsv(
-        ["Member Code", "Name", "Mobile", "Pending Years", "Total Pending"],
-        rows.map((r) => [
-          r.memberCode,
-          r.memberName,
-          r.mobile ?? "",
-          r.pendingYears,
-          r.totalPending,
-        ]),
-      );
+      sheet = "Pending Dues";
+      headers = ["Member Code", "Name", "Mobile", "Pending Years", "Total Pending"];
+      data = rows.map((r) => [
+        r.memberCode,
+        r.memberName,
+        r.mobile ?? "",
+        r.pendingYears,
+        r.totalPending,
+      ]);
     } else {
       return new Response("Unknown report", { status: 404 });
     }
-    return new Response("﻿" + csv, {
+
+    const buffer = await toXlsx(headers, data, sheet);
+    return new Response(new Uint8Array(buffer), {
       headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${type}-report.csv"`,
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${type}-report.xlsx"`,
       },
     });
   } catch {

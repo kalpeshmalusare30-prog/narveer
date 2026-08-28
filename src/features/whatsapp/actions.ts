@@ -230,9 +230,36 @@ export async function sendBulkReminders(memberIds: string[]) {
   });
 }
 
+export async function sendThankYou(memberId: string) {
+  return withAction({ permission: "whatsapp.send" }, async (ctx) => {
+    const member = await db.member.findFirst({ where: { id: memberId } });
+    if (!member) throw new Error("MEMBER_NOT_FOUND");
+    const org = await rawDb.organization.findUnique({
+      where: { id: ctx.organizationId },
+    });
+    const body =
+      (await getTemplateBody("thankyou")) ??
+      "नमस्कार {{memberName}}, आपल्या सहकार्याबद्दल धन्यवाद. {{organizationName}}";
+    const content = renderTemplate(body, {
+      memberName: member.fullName,
+      organizationName: org?.name ?? "",
+      contactNumber: org?.contactNumber ?? "",
+    });
+    return recordAndSend(ctx, {
+      memberId,
+      toNumber: member.whatsappNumber || member.mobile || "",
+      type: "thankyou",
+      content,
+    });
+  });
+}
+
 // --- client adapters ---
 export async function sendReminderAction(memberId: string) {
   return sendPendingReminder(memberId);
+}
+export async function sendThankYouAction(memberId: string) {
+  return sendThankYou(memberId);
 }
 export async function sendConfirmationAction(paymentId: string) {
   return sendPaymentConfirmation(paymentId);

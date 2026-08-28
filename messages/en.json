@@ -242,7 +242,7 @@
     "fee": "Fee",
     "paid": "Paid",
     "grandTotal": "Grand Total",
-    "exportExcel": "Export CSV",
+    "exportExcel": "Export Excel",
     "exportPdf": "Export PDF",
     "totalIncome": "Total Income",
     "totalExpense": "Total Expense",
@@ -342,7 +342,12 @@
     "void": "Void member",
     "confirmVoid": "Mark this member inactive?",
     "created": "Member created",
-    "updated": "Member updated"
+    "updated": "Member updated",
+    "payment": "Payment",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "remind": "Remind",
+    "thanks": "Thanks"
   },
   "settings": {
     "title": "Settings",
