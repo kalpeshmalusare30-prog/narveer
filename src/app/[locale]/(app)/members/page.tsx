@@ -4,9 +4,16 @@ import { listMembers, getMemberRefData } from "@/features/members/query";
 import { listPendingDues } from "@/features/finance/fee-query";
 import { memberName } from "@/features/members/name";
 import { Link } from "@/i18n/navigation";
+import { MessageCircle } from "lucide-react";
 import { PageHeader, Button, StatusBadge, Badge } from "@/components/ui";
 import { MemberFilters } from "@/features/members/components/MemberFilters";
-import { WaSendButton } from "@/features/whatsapp/components/WaSendButton";
+import { formatINR } from "@/lib/money/money";
+import {
+  normalizeWaNumber,
+  waLink,
+  fillTemplate,
+  getWaClickContext,
+} from "@/features/whatsapp/click-to-send";
 
 export default async function MembersPage({
   params,
@@ -37,6 +44,8 @@ export default async function MembersPage({
   const pendingByMember = canViewFees
     ? new Map((await listPendingDues()).map((d) => [d.memberId, d.totalPending]))
     : new Map<string, string>();
+  // Free wa.me click-to-send context (org name + reminder/thank-you templates).
+  const wa = canSend ? await getWaClickContext() : null;
   const { statuses, types } = await getMemberRefData();
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -92,7 +101,32 @@ export default async function MembersPage({
             <tbody>
               {rows.map((m) => {
                 const unpaid = pendingByMember.has(m.id);
-                const hasNumber = !!(m.mobile || m.whatsappNumber);
+                const waNum = wa
+                  ? normalizeWaNumber(m.whatsappNumber || m.mobile)
+                  : null;
+                const waHref =
+                  waNum && wa
+                    ? waLink(
+                        waNum,
+                        unpaid
+                          ? fillTemplate(wa.reminderBody, {
+                              memberName: m.fullName,
+                              organizationName: wa.orgName,
+                              totalPending: formatINR(
+                                pendingByMember.get(m.id) ?? "0",
+                              ),
+                              pendingAmount: formatINR(
+                                pendingByMember.get(m.id) ?? "0",
+                              ),
+                              contactNumber: wa.contactNumber,
+                            })
+                          : fillTemplate(wa.thankyouBody, {
+                              memberName: m.fullName,
+                              organizationName: wa.orgName,
+                              contactNumber: wa.contactNumber,
+                            }),
+                      )
+                    : null;
                 return (
                   <tr
                     key={m.id}
@@ -138,14 +172,16 @@ export default async function MembersPage({
                             {t("common.edit")}
                           </Link>
                         )}
-                        {canSend && hasNumber && (
-                          <WaSendButton
-                            kind={unpaid ? "reminder" : "thankyou"}
-                            id={m.id}
-                            label={
-                              unpaid ? t("members.remind") : t("members.thanks")
-                            }
-                          />
+                        {waHref && (
+                          <a
+                            href={waHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            {unpaid ? t("members.remind") : t("members.thanks")}
+                          </a>
                         )}
                       </div>
                     </td>
