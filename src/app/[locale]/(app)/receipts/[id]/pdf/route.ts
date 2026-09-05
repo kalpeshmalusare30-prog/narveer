@@ -3,6 +3,8 @@ import { getReceiptForPdf } from "@/features/receipts/query";
 import { rawDb } from "@/lib/db/raw";
 import { renderReceiptPdf } from "@/lib/pdf/receipt";
 import { amountInMarathiWords } from "@/lib/money/marathi-words";
+import { feePending } from "@/lib/finance/calc";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,30 @@ export async function GET(
   });
   if (!org) return new Response("Not found", { status: 404 });
 
+  // Current remaining vargani for this receipt's year(s) — printed as बाकी
+  // when the member paid partially.
+  const feeIds = receipt.payment.allocations.map((a) => a.annualFeeId);
+  let pendingAmount = new Prisma.Decimal(0);
+  if (feeIds.length) {
+    const paidAllocs = await rawDb.paymentAllocation.findMany({
+      where: { annualFeeId: { in: feeIds } },
+      include: { payment: { select: { isVoided: true } } },
+    });
+    const paidByFee: Record<string, Prisma.Decimal> = {};
+    for (const a of paidAllocs) {
+      if (a.payment.isVoided) continue;
+      paidByFee[a.annualFeeId] = (
+        paidByFee[a.annualFeeId] ?? new Prisma.Decimal(0)
+      ).plus(a.amount);
+    }
+    for (const a of receipt.payment.allocations) {
+      const paid = paidByFee[a.annualFeeId] ?? new Prisma.Decimal(0);
+      pendingAmount = pendingAmount.plus(
+        feePending(a.annualFee.feeAmount, paid, a.annualFee.status),
+      );
+    }
+  }
+
   const buffer = await renderReceiptPdf({
     org: {
       // The traditional receipt is Marathi-first.
@@ -44,6 +70,7 @@ export async function GET(
       tagline2: org.receiptTagline2,
       logoDataUri: org.logoDataUri,
       deityDataUri: org.receiptImageDataUri,
+      treasurerSignDataUri: org.treasurerSignDataUri,
     },
     receiptNumber: receipt.receiptNumber,
     receiptDate: ddmmyyyy(new Date(receipt.receiptDate)),
@@ -54,6 +81,7 @@ export async function GET(
     ),
     amountWords: amountInMarathiWords(receipt.payment.amount.toString()),
     total: receipt.payment.amount.toString(),
+    pendingAmount: pendingAmount.toString(),
   });
 
   return new Response(new Uint8Array(buffer), {

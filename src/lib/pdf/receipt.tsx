@@ -148,6 +148,7 @@ export type ReceiptPdfData = {
     tagline2?: string | null;
     logoDataUri?: string | null;
     deityDataUri?: string | null;
+    treasurerSignDataUri?: string | null;
   };
   receiptNumber: string;
   /** dd/mm/yyyy */
@@ -158,6 +159,8 @@ export type ReceiptPdfData = {
   /** "एक हजार दोनशे रुपये फक्त" */
   amountWords: string;
   total: string;
+  /** Remaining vargani for this receipt's year(s); shown when > 0. */
+  pendingAmount?: string | null;
 };
 
 function fmtAmount(amount: string) {
@@ -183,7 +186,7 @@ export async function renderReceiptPdf(d: ReceiptPdfData): Promise<Buffer> {
   ];
   const doc = (
     <Document>
-      <Page size={[595, 312]} style={styles.page}>
+      <Page size={[595, 340]} style={styles.page}>
         <View style={styles.frame}>
           {corners.map((pos, i) => (
             <View key={i} style={[styles.corner, pos]} />
@@ -252,7 +255,20 @@ export async function renderReceiptPdf(d: ReceiptPdfData): Promise<Buffer> {
               <Text style={styles.fieldValue}>{d.amountWords}</Text>
             </View>
 
-            <Text style={styles.thanksLine}>{receivedLine(d.modeName)}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+              }}
+            >
+              <Text style={styles.thanksLine}>{receivedLine(d.modeName)}</Text>
+              {d.pendingAmount && Number(d.pendingAmount) > 0 ? (
+                <Text style={styles.thanksLine}>
+                  बाकी वर्गणी: रु. {fmtAmount(d.pendingAmount)}/-
+                </Text>
+              ) : null}
+            </View>
             <Text style={styles.dhanyavad}>धन्यवाद !</Text>
 
             {/* amount box + signatures */}
@@ -264,7 +280,15 @@ export async function renderReceiptPdf(d: ReceiptPdfData): Promise<Buffer> {
               <Text style={styles.signLabel}>अध्यक्ष</Text>
               <Text style={styles.signLabel}>उपाध्यक्ष</Text>
               <Text style={styles.signLabel}>सेक्रेटरी</Text>
-              <Text style={styles.signLabel}>खजिनदार</Text>
+              <View style={{ alignItems: "center" }}>
+                {d.org.treasurerSignDataUri ? (
+                  <Image
+                    src={d.org.treasurerSignDataUri}
+                    style={{ width: 62, height: 28, objectFit: "contain", marginBottom: -2 }}
+                  />
+                ) : null}
+                <Text style={styles.signLabel}>खजिनदार</Text>
+              </View>
             </View>
           </View>
         </View>

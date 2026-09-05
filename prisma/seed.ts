@@ -75,6 +75,18 @@ export async function seed(): Promise<void> {
   } catch {
     // deity image is optional
   }
+  // 2d. Treasurer's signature (printed above खजिनदार on receipts).
+  try {
+    const sign = await readFile(path.join(process.cwd(), "signature.png"));
+    await db.organization.update({
+      where: { id: org.id },
+      data: {
+        treasurerSignDataUri: `data:image/png;base64,${sign.toString("base64")}`,
+      },
+    });
+  } catch {
+    // signature is optional
+  }
 
   // 3. Provision all per-org defaults (permissions, roles, types, statuses,
   //    payment modes, income/expense categories, WhatsApp templates).

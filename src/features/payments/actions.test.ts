@@ -55,7 +55,7 @@ beforeEach(async () => {
   vi.restoreAllMocks();
 });
 
-test("split payment across two years updates pending and creates a receipt", async () => {
+test("two-year payment splits into one payment + receipt per year", async () => {
   const { member, mode, fee1, fee2 } = await setup();
   expect(await getMemberTotalPending(member.id)).toBe("2000");
 
@@ -68,7 +68,24 @@ test("split payment across two years updates pending and creates a receipt", asy
       { annualFeeId: fee2.id, amount: "500" },
     ],
   });
+  // One पावती per vargani year, oldest year first.
+  expect(res.receipts).toHaveLength(2);
+  expect(res.receipts.map((r) => r.receiptNumber)).toEqual([
+    "NTM0001",
+    "NTM0002",
+  ]);
+  expect(res.receipts.map((r) => r.yearLabel)).toEqual(["2024-25", "2025-26"]);
   expect(res.receiptNumber).toBe("NTM0001");
+
+  const payments = await testDb.payment.findMany({
+    where: { memberId: member.id },
+    orderBy: { createdAt: "asc" },
+    include: { allocations: true, receipt: true },
+  });
+  expect(payments).toHaveLength(2);
+  expect(payments.map((p) => p.amount.toString())).toEqual(["1000", "500"]);
+  expect(payments.every((p) => p.allocations.length === 1)).toBe(true);
+  expect(payments.every((p) => p.receipt !== null)).toBe(true);
 
   const rows = await listMemberFees(member.id);
   const r1 = rows.find((r) => r.id === fee1.id)!;
@@ -78,6 +95,21 @@ test("split payment across two years updates pending and creates a receipt", asy
   expect(r2.pending).toBe("500");
   expect(r2.status).toBe("Partial");
   expect(await getMemberTotalPending(member.id)).toBe("500");
+});
+
+test("multi-year payment must be fully allocated to split", async () => {
+  const { member, mode, fee1, fee2 } = await setup();
+  await expect(
+    recordPayment({
+      memberId: member.id,
+      amount: "1600", // 100 unallocated — ambiguous across years
+      paymentModeId: mode.id,
+      allocations: [
+        { annualFeeId: fee1.id, amount: "1000" },
+        { annualFeeId: fee2.id, amount: "500" },
+      ],
+    }),
+  ).rejects.toThrow(/MULTI_YEAR_MUST_BE_FULLY_ALLOCATED/);
 });
 
 test("rejects allocation exceeding a fee's pending", async () => {

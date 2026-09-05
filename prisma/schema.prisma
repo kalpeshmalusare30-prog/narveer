@@ -19,6 +19,7 @@ model Organization {
   receiptTagline1      String?
   receiptTagline2      String?
   receiptImageDataUri  String?  @db.Text
+  treasurerSignDataUri String?  @db.Text
   logoRef              String?
   logoDataUri          String?  @db.Text
   address              String?
