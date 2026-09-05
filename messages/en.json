@@ -3,6 +3,19 @@
     "name": "Mandal CRM",
     "tagline": "Membership & Financial Management"
   },
+  "getApp": {
+    "title": "Get the App",
+    "subtitle": "Install the app on your phone — members, vargani, receipts and more.",
+    "androidTitle": "Android",
+    "downloadBtn": "Download for Android (APK)",
+    "androidSteps": "Open the downloaded file and tap Install. If the phone asks for permission to install from this source, allow it once.",
+    "iosTitle": "iPhone",
+    "iosSteps": "Open this website in Safari, tap the Share button, then choose \"Add to Home Screen\".",
+    "altTitle": "Without downloading",
+    "altSteps": "Open this website in Chrome, tap the ⋮ menu and choose \"Add to Home screen\" — same app, no APK needed.",
+    "qrHint": "Scan to open this page",
+    "size": "About 3 MB • updates automatically"
+  },
   "statuses": {
     "Paid": "Paid",
     "Partial": "Partial",
