@@ -61,8 +61,19 @@ test("muster register: grid, quick add, vargani entry, deactivate/restore", asyn
   await expect(cell).toContainText("₹1,000.00");
   await expect(cell).toHaveClass(/bg-emerald/);
 
-  // WhatsApp click-to-send: fully paid member gets a thank-you wa.me link
-  // built from their mobile (+91 prefixed).
+  // Mistake correction: typing a LOWER total asks for confirmation, then
+  // voids the wrong payment and re-records the corrected amount.
+  page.once("dialog", (dialog) => void dialog.accept());
+  await cell.click();
+  const correctionInput = cell.locator("input");
+  await expect(correctionInput).toBeVisible();
+  await correctionInput.fill("400");
+  await correctionInput.press("Enter");
+  await expect(cell).toContainText("₹400.00");
+  await expect(cell).toHaveClass(/bg-amber/); // partial again
+
+  // WhatsApp click-to-send: the member gets a wa.me link built from their
+  // mobile (+91 prefixed).
   await expect(page.getByTestId(`muster-wa-${code}`)).toHaveAttribute(
     "href",
     /wa\.me\/919876512345\?text=/,

@@ -5,7 +5,7 @@ import { db } from "@/lib/db/prisma";
 import { withAction } from "@/lib/rbac/guard";
 import { writeAudit } from "@/lib/audit/audit";
 import { feePending, deriveStatus, isManualZeroStatus } from "@/lib/finance/calc";
-import { recordPayment } from "@/features/payments/actions";
+import { recordPayment, voidPayment } from "@/features/payments/actions";
 import { createMember, voidMember } from "@/features/members/actions";
 import type {
   MusterCell,
@@ -57,6 +57,9 @@ export async function musterSetPaidAction(input: {
   memberId: string;
   financialYearId: string;
   totalPaid: string;
+  /** Set after the admin confirms a decrease: voids this year's wrong
+   *  payment(s) (kept in history) and re-records the corrected total. */
+  allowCorrection?: boolean;
 }): Promise<MusterSetPaidResult> {
   let total: Prisma.Decimal;
   try {
@@ -114,14 +117,43 @@ export async function musterSetPaidAction(input: {
           return { ok: false, error: "WAIVED" };
         }
 
-        const paid = await paidForFee(fee.id);
-        if (total.lessThan(paid)) return { ok: false, error: "LOWER_THAN_PAID" };
+        let paid = await paidForFee(fee.id);
         if (total.greaterThan(fee.feeAmount)) {
           return { ok: false, error: "EXCEEDS_FEE" };
         }
         if (total.equals(paid)) {
           // No-op: the register already shows this total.
           return { ok: true, cell: toCell(fee.feeAmount, paid, fee.status) };
+        }
+        if (total.lessThan(paid)) {
+          if (!input.allowCorrection) {
+            return { ok: false, error: "LOWER_THAN_PAID", paid: paid.toString() };
+          }
+          // Correction: void every (non-voided) payment behind this year's
+          // cell, then fall through to re-record the corrected total. A
+          // payment that also covers OTHER years can't be auto-voided safely.
+          const allocs = await db.paymentAllocation.findMany({
+            where: { annualFeeId: fee.id },
+            include: { payment: { include: { allocations: true } } },
+          });
+          const paymentIds = new Set<string>();
+          for (const a of allocs) {
+            if (a.payment.isVoided) continue;
+            if (a.payment.allocations.some((x) => x.annualFeeId !== fee!.id)) {
+              return { ok: false, error: "MULTI_YEAR_PAYMENT" };
+            }
+            paymentIds.add(a.paymentId);
+          }
+          for (const id of paymentIds) {
+            // voidPayment enforces payment.void and recomputes the fee status.
+            await voidPayment(id, "Muster correction");
+          }
+          paid = new Prisma.Decimal(0);
+          if (total.isZero()) {
+            const cleared = await db.annualFee.findFirst({ where: { id: fee.id } });
+            const f = cleared ?? fee;
+            return { ok: true, cell: toCell(f.feeAmount, paid, f.status) };
+          }
         }
 
         const delta = total.minus(paid);

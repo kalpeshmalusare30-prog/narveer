@@ -371,9 +371,11 @@
     "totalPending": "Total Pending",
     "noFee": "No fee assigned",
     "inactive": "Inactive",
+    "confirmCorrect": "Already paid {paid} for this year. Change it to {amount}? The wrong payment will be cancelled (kept in history) and a corrected entry recorded.",
     "errors": {
       "INVALID_AMOUNT": "Enter a valid amount",
-      "LOWER_THAN_PAID": "Entered amount is less than already paid — void the receipt from Payments instead",
+      "LOWER_THAN_PAID": "Entered amount is less than already paid",
+      "MULTI_YEAR_PAYMENT": "This year's amount was collected together with other years in one receipt — correct it from the Payments screen",
       "EXCEEDS_FEE": "More than this year's vargani — record extra via Payments",
       "WAIVED": "This year's vargani is waived for this member",
       "NO_PAYMENT_MODE": "No active cash payment mode is configured",

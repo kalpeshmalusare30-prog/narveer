@@ -47,6 +47,7 @@ export type MusterErr =
   | "EXCEEDS_FEE"
   | "WAIVED"
   | "NO_PAYMENT_MODE"
+  | "MULTI_YEAR_PAYMENT"
   | "NOT_FOUND"
   | "FORBIDDEN"
   | "NAME_REQUIRED"
@@ -54,7 +55,9 @@ export type MusterErr =
 
 export type MusterSetPaidResult =
   | { ok: true; cell: MusterCell; receiptNumber?: string }
-  | { ok: false; error: MusterErr };
+  /** LOWER_THAN_PAID carries the currently-paid amount so the UI can offer
+   *  a correction (void the wrong payment + re-record) with real numbers. */
+  | { ok: false; error: MusterErr; paid?: string };
 
 export type MusterUpdateMemberResult = { ok: true } | { ok: false; error: MusterErr };
 

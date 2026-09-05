@@ -21,6 +21,7 @@ const PERMS = [
   "member.void",
   "fee.view",
   "payment.create",
+  "payment.void",
 ];
 
 async function setup(perms: string[] = PERMS) {
@@ -141,7 +142,7 @@ test("partial then top-up creates two payments for the difference", async () => 
   expect(payments.map((p) => p.amount.toString())).toEqual(["300", "200"]);
 });
 
-test("setPaid rejects a total lower than what is already paid", async () => {
+test("setPaid rejects a lower total unless correction is confirmed", async () => {
   const { member, year } = await setup();
   await musterSetPaidAction({
     memberId: member.id,
@@ -153,7 +154,135 @@ test("setPaid rejects a total lower than what is already paid", async () => {
     financialYearId: year.id,
     totalPaid: "200",
   });
-  expect(res).toEqual({ ok: false, error: "LOWER_THAN_PAID" });
+  expect(res).toEqual({ ok: false, error: "LOWER_THAN_PAID", paid: "300" });
+});
+
+test("correction voids the wrong payment and re-records the lower total", async () => {
+  const { member, year } = await setup();
+  await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "500",
+  });
+  const res = await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "200",
+    allowCorrection: true,
+  });
+  expect(res.ok).toBe(true);
+  if (!res.ok) return;
+  expect(res.cell).toEqual({
+    feeAmount: "500",
+    paid: "200",
+    pending: "300",
+    status: "Partial",
+  });
+  expect(res.receiptNumber).toBe("NTM0002");
+
+  const payments = await testDb.payment.findMany({
+    where: { memberId: member.id },
+    orderBy: { createdAt: "asc" },
+  });
+  expect(payments).toHaveLength(2);
+  expect(payments[0].isVoided).toBe(true); // the wrong ₹500
+  expect(payments[0].voidedReason).toBe("Muster correction");
+  expect(payments[1].isVoided).toBe(false);
+  expect(payments[1].amount.toString()).toBe("200");
+});
+
+test("correction to zero voids everything and reopens the year", async () => {
+  const { member, year } = await setup();
+  await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "300",
+  });
+  const res = await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "0",
+    allowCorrection: true,
+  });
+  expect(res.ok).toBe(true);
+  if (!res.ok) return;
+  expect(res.cell).toEqual({
+    feeAmount: "500",
+    paid: "0",
+    pending: "500",
+    status: "Pending",
+  });
+  const payments = await testDb.payment.findMany({
+    where: { memberId: member.id },
+  });
+  expect(payments).toHaveLength(1);
+  expect(payments[0].isVoided).toBe(true);
+});
+
+test("correction refuses payments that also cover other years", async () => {
+  const { org, member, year } = await setup();
+  await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "300",
+  });
+  // Make that payment span a second year's fee.
+  const year2 = await testDb.financialYear.create({
+    data: {
+      organizationId: org.id,
+      label: "2026-27",
+      feeAmount: "500",
+      startDate: new Date("2026-04-01"),
+      endDate: new Date("2027-03-31"),
+    },
+  });
+  const fee2 = await testDb.annualFee.create({
+    data: {
+      organizationId: org.id,
+      memberId: member.id,
+      financialYearId: year2.id,
+      feeAmount: "500",
+    },
+  });
+  const payment = await testDb.payment.findFirstOrThrow({
+    where: { memberId: member.id },
+  });
+  await testDb.paymentAllocation.create({
+    data: {
+      organizationId: org.id,
+      paymentId: payment.id,
+      annualFeeId: fee2.id,
+      amount: "100",
+    },
+  });
+
+  const res = await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "100",
+    allowCorrection: true,
+  });
+  expect(res).toEqual({ ok: false, error: "MULTI_YEAR_PAYMENT" });
+});
+
+test("correction without payment.void is FORBIDDEN", async () => {
+  const { member, year } = await setup([
+    "member.view",
+    "fee.view",
+    "payment.create",
+  ]);
+  await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "300",
+  });
+  const res = await musterSetPaidAction({
+    memberId: member.id,
+    financialYearId: year.id,
+    totalPaid: "100",
+    allowCorrection: true,
+  });
+  expect(res).toEqual({ ok: false, error: "FORBIDDEN" });
 });
 
 test("setPaid rejects a total above the fee amount", async () => {

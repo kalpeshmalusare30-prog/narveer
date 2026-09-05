@@ -367,11 +367,27 @@ export function MusterGrid({
     y: MusterYear,
     totalPaid: string,
   ): Promise<boolean> => {
-    const res = await musterSetPaidAction({
+    let res = await musterSetPaidAction({
       memberId: m.id,
       financialYearId: y.id,
       totalPaid,
     });
+    // Decrease = mistake correction: confirm, then void + re-record.
+    if (!res.ok && res.error === "LOWER_THAN_PAID") {
+      const confirmed = window.confirm(
+        t("confirmCorrect", {
+          paid: formatINR(res.paid ?? "0"),
+          amount: formatINR(totalPaid || "0"),
+        }),
+      );
+      if (!confirmed) return false;
+      res = await musterSetPaidAction({
+        memberId: m.id,
+        financialYearId: y.id,
+        totalPaid,
+        allowCorrection: true,
+      });
+    }
     if (res.ok) {
       setMembers((prev) =>
         prev.map((x) =>
