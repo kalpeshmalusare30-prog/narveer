@@ -14,6 +14,11 @@ model Organization {
   name                 String
   nameMr               String?
   shortName            String
+  addressMr            String?
+  receiptBlessing      String?
+  receiptTagline1      String?
+  receiptTagline2      String?
+  receiptImageDataUri  String?  @db.Text
   logoRef              String?
   logoDataUri          String?  @db.Text
   address              String?

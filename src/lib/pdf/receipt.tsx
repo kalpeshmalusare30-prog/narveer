@@ -10,8 +10,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 
-// Noto Sans Devanagari covers Latin + Devanagari, so one family renders both
-// English and Marathi receipts.
+// Noto Sans Devanagari covers Latin + Devanagari.
 Font.register({
   family: "Noto",
   fonts: [
@@ -26,185 +25,248 @@ Font.register({
   ],
 });
 
+// The traditional receipt is printed in a single red ink on white.
+const RED = "#c53211";
+
 const styles = StyleSheet.create({
-  page: { padding: 36, fontFamily: "Noto", fontSize: 10, color: "#0f172a" },
-  header: {
+  page: {
+    padding: 10,
+    fontFamily: "Noto",
+    fontSize: 10,
+    color: RED,
+    backgroundColor: "#ffffff",
+  },
+  frame: {
+    flex: 1,
+    borderWidth: 2.4,
+    borderColor: RED,
+    borderRadius: 10,
+    padding: 3,
+  },
+  inner: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: RED,
+    borderRadius: 7,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  corner: {
+    position: "absolute",
+    width: 9,
+    height: 9,
+    backgroundColor: RED,
+    transform: "rotate(45deg)",
+  },
+  topBand: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: "#e0400f",
-    paddingBottom: 10,
-    marginBottom: 14,
-  },
-  logo: { width: 46, height: 46, objectFit: "contain" },
-  orgName: { fontSize: 15, fontWeight: 700 },
-  orgMeta: { fontSize: 9, color: "#475569" },
-  title: {
-    fontSize: 13,
-    fontWeight: 700,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  row: { flexDirection: "row", marginBottom: 4 },
-  label: { width: 130, color: "#64748b" },
-  value: { flex: 1, fontWeight: 700 },
-  table: { marginTop: 12, borderWidth: 1, borderColor: "#e2e8f0" },
-  tr: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-  },
-  th: {
-    flex: 1,
-    padding: 6,
-    fontWeight: 700,
-    backgroundColor: "#f1f5f9",
-  },
-  td: { flex: 1, padding: 6 },
-  totalRow: { flexDirection: "row", marginTop: 8, justifyContent: "flex-end" },
-  totalLabel: { fontWeight: 700, marginRight: 12 },
-  totalValue: { fontWeight: 700, fontSize: 12 },
-  footer: {
-    marginTop: 40,
-    flexDirection: "row",
     justifyContent: "space-between",
   },
-  sign: { fontSize: 9, color: "#475569" },
+  blessing: { fontSize: 9.5, fontWeight: 700 },
+  regNo: { fontSize: 9.5, fontWeight: 700 },
+  mainBand: { flexDirection: "row", alignItems: "center", marginTop: 2 },
+  emblem: { width: 66, height: 66, objectFit: "contain" },
+  centerCol: { flex: 1, alignItems: "center", paddingHorizontal: 6 },
+  orgName: { fontSize: 19, fontWeight: 700, textAlign: "center" },
+  tagline1: { fontSize: 11.5, fontWeight: 700, textAlign: "center", marginTop: 1 },
+  tagline2: { fontSize: 9, fontWeight: 700, textAlign: "center", marginTop: 1 },
+  yearBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.4,
+    borderColor: RED,
+    borderRadius: 9,
+    paddingHorizontal: 10,
+    paddingVertical: 1.5,
+    marginTop: 3,
+  },
+  yearBadgeText: { fontSize: 10, fontWeight: 700 },
+  address: { fontSize: 10, fontWeight: 700, textAlign: "center", marginTop: 3 },
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginTop: 6,
+  },
+  metaLabel: { fontSize: 10.5, fontWeight: 700 },
+  metaValue: {
+    fontSize: 11,
+    fontWeight: 700,
+    borderBottomWidth: 1,
+    borderBottomColor: RED,
+    minWidth: 90,
+    textAlign: "center",
+    paddingHorizontal: 6,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 9,
+  },
+  fieldLabel: { fontSize: 11.5, fontWeight: 700 },
+  fieldValue: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: 700,
+    borderBottomWidth: 1,
+    borderBottomColor: RED,
+    textAlign: "center",
+    paddingHorizontal: 6,
+  },
+  thanksLine: { fontSize: 11.5, fontWeight: 700, marginTop: 10 },
+  dhanyavad: { fontSize: 14, fontWeight: 700, textAlign: "center", marginTop: 2 },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  amountBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: RED,
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+  },
+  amountRu: { fontSize: 12, fontWeight: 700, marginRight: 8 },
+  amountValue: { fontSize: 13, fontWeight: 700 },
+  signLabel: { fontSize: 10, fontWeight: 700 },
 });
 
-type Lang = "en" | "mr";
-const L: Record<Lang, Record<string, string>> = {
-  en: {
-    receipt: "PAYMENT RECEIPT",
-    number: "Receipt No.",
-    date: "Date",
-    member: "Member",
-    memberId: "Member ID",
-    mode: "Mode",
-    reference: "Reference",
-    year: "Financial Year",
-    amount: "Amount",
-    total: "Total",
-    collectedBy: "Collected by",
-    authorized: "Authorized signatory",
-    rupees: "₹",
-  },
-  mr: {
-    receipt: "पावती",
-    number: "पावती क्र.",
-    date: "दिनांक",
-    member: "सभासद",
-    memberId: "सभासद क्र.",
-    mode: "पद्धत",
-    reference: "संदर्भ",
-    year: "आर्थिक वर्ष",
-    amount: "रक्कम",
-    total: "एकूण",
-    collectedBy: "स्वीकारकर्ता",
-    authorized: "अधिकृत स्वाक्षरी",
-    rupees: "₹",
-  },
-};
-
 export type ReceiptPdfData = {
-  locale: string;
   org: {
+    /** Marathi-first display name. */
     name: string;
-    address?: string | null;
-    city?: string | null;
-    contactNumber?: string | null;
-    email?: string | null;
-    logoDataUri?: string;
+    /** Marathi address line, e.g. "मु. …, ता. …, जि. …". */
+    address: string;
+    registrationNumber?: string | null;
+    blessing?: string | null;
+    tagline1?: string | null;
+    tagline2?: string | null;
+    logoDataUri?: string | null;
+    deityDataUri?: string | null;
   };
   receiptNumber: string;
+  /** dd/mm/yyyy */
   receiptDate: string;
   memberName: string;
-  memberCode: string;
   modeName: string;
-  referenceNumber?: string | null;
-  collectedByName?: string | null;
-  lines: { yearLabel: string; amount: string }[];
+  yearLabels: string[];
+  /** "एक हजार दोनशे रुपये फक्त" */
+  amountWords: string;
   total: string;
 };
 
-function fmt(amount: string) {
+function fmtAmount(amount: string) {
+  const n = Number(amount);
   return new Intl.NumberFormat("en-IN", {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(Number(amount));
+  }).format(n);
+}
+
+/** "Cash" prints as रोख; other modes print their own name. */
+function receivedLine(modeName: string): string {
+  const mode = modeName.trim().toLowerCase() === "cash" ? "रोख" : modeName;
+  return `${mode} मिळाले. सहकार्याबद्दल कार्यकारी मंडळ आभारी आहोत !`;
 }
 
 export async function renderReceiptPdf(d: ReceiptPdfData): Promise<Buffer> {
-  const t = L[(d.locale === "mr" ? "mr" : "en") as Lang];
+  const corners = [
+    { top: -3, left: -3 },
+    { top: -3, right: -3 },
+    { bottom: -3, left: -3 },
+    { bottom: -3, right: -3 },
+  ];
   const doc = (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          {d.org.logoDataUri ? (
-            <Image style={styles.logo} src={d.org.logoDataUri} />
-          ) : null}
-          <View>
-            <Text style={styles.orgName}>{d.org.name}</Text>
-            <Text style={styles.orgMeta}>
-              {[d.org.address, d.org.city].filter(Boolean).join(", ")}
-            </Text>
-            <Text style={styles.orgMeta}>
-              {[d.org.contactNumber, d.org.email].filter(Boolean).join(" • ")}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.title}>{t.receipt}</Text>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>{t.number}</Text>
-          <Text style={styles.value}>{d.receiptNumber}</Text>
-          <Text style={styles.label}>{t.date}</Text>
-          <Text style={styles.value}>{d.receiptDate}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>{t.member}</Text>
-          <Text style={styles.value}>{d.memberName}</Text>
-          <Text style={styles.label}>{t.memberId}</Text>
-          <Text style={styles.value}>{d.memberCode}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>{t.mode}</Text>
-          <Text style={styles.value}>{d.modeName}</Text>
-          <Text style={styles.label}>{t.reference}</Text>
-          <Text style={styles.value}>{d.referenceNumber || "-"}</Text>
-        </View>
-
-        <View style={styles.table}>
-          <View style={styles.tr}>
-            <Text style={styles.th}>{t.year}</Text>
-            <Text style={styles.th}>{t.amount}</Text>
-          </View>
-          {d.lines.map((ln, i) => (
-            <View style={styles.tr} key={i}>
-              <Text style={styles.td}>{ln.yearLabel}</Text>
-              <Text style={styles.td}>
-                {t.rupees}
-                {fmt(ln.amount)}
+      <Page size={[595, 312]} style={styles.page}>
+        <View style={styles.frame}>
+          {corners.map((pos, i) => (
+            <View key={i} style={[styles.corner, pos]} />
+          ))}
+          <View style={styles.inner}>
+            {/* blessing + registration number */}
+            <View style={styles.topBand}>
+              <Text style={{ width: 70 }} />
+              <Text style={styles.blessing}>{d.org.blessing ?? " "}</Text>
+              <Text style={styles.regNo}>
+                {d.org.registrationNumber
+                  ? `रजि. नं. ${d.org.registrationNumber}`
+                  : " "}
               </Text>
             </View>
-          ))}
-        </View>
 
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>{t.total}</Text>
-          <Text style={styles.totalValue}>
-            {t.rupees}
-            {fmt(d.total)}
-          </Text>
-        </View>
+            {/* emblems + titles */}
+            <View style={styles.mainBand}>
+              {d.org.logoDataUri ? (
+                <Image style={styles.emblem} src={d.org.logoDataUri} />
+              ) : (
+                <View style={styles.emblem} />
+              )}
+              <View style={styles.centerCol}>
+                <Text style={styles.orgName}>{d.org.name}</Text>
+                {d.org.tagline1 ? (
+                  <Text style={styles.tagline1}>{d.org.tagline1}</Text>
+                ) : null}
+                {d.org.tagline2 ? (
+                  <Text style={styles.tagline2}>{d.org.tagline2}</Text>
+                ) : null}
+                <View style={styles.yearBadge}>
+                  <Text style={styles.yearBadgeText}>
+                    सभासद वर्गणी वर्षे  {d.yearLabels.join(", ")}
+                  </Text>
+                </View>
+                <Text style={styles.address}>{d.org.address}</Text>
+              </View>
+              {d.org.deityDataUri ? (
+                <Image style={styles.emblem} src={d.org.deityDataUri} />
+              ) : (
+                <View style={styles.emblem} />
+              )}
+            </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.sign}>
-            {t.collectedBy}: {d.collectedByName || "-"}
-          </Text>
-          <Text style={styles.sign}>{t.authorized}</Text>
+            {/* receipt no + date */}
+            <View style={styles.metaRow}>
+              <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+                <Text style={styles.metaLabel}>पावती क्र.: </Text>
+                <Text style={styles.metaValue}>{d.receiptNumber}</Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+                <Text style={styles.metaLabel}>दि.: </Text>
+                <Text style={styles.metaValue}>{d.receiptDate}</Text>
+              </View>
+            </View>
+
+            {/* member + amount in words */}
+            <View style={styles.fieldRow}>
+              <Text style={styles.fieldLabel}>श्री./श्रीमती </Text>
+              <Text style={styles.fieldValue}>{d.memberName}</Text>
+              <Text style={styles.fieldLabel}> यांसकडून</Text>
+            </View>
+            <View style={styles.fieldRow}>
+              <Text style={styles.fieldLabel}>देणगी (अक्षरी) रु. </Text>
+              <Text style={styles.fieldValue}>{d.amountWords}</Text>
+            </View>
+
+            <Text style={styles.thanksLine}>{receivedLine(d.modeName)}</Text>
+            <Text style={styles.dhanyavad}>धन्यवाद !</Text>
+
+            {/* amount box + signatures */}
+            <View style={styles.bottomRow}>
+              <View style={styles.amountBox}>
+                <Text style={styles.amountRu}>रु.</Text>
+                <Text style={styles.amountValue}>{fmtAmount(d.total)}/-</Text>
+              </View>
+              <Text style={styles.signLabel}>अध्यक्ष</Text>
+              <Text style={styles.signLabel}>उपाध्यक्ष</Text>
+              <Text style={styles.signLabel}>सेक्रेटरी</Text>
+              <Text style={styles.signLabel}>खजिनदार</Text>
+            </View>
+          </View>
         </View>
       </Page>
     </Document>

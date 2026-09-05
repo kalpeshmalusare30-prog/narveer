@@ -24,12 +24,20 @@ export async function seed(): Promise<void> {
   });
 
   // 2. Initial organization: Narveer Tanaji Malusare Pratishthan
+  const receiptBranding = {
+    nameMr: "नरवीर तानाजी मालुसरे प्रतिष्ठान",
+    addressMr: "मु. पिंपळवाडी (खरबवाडी), ता. महाड, जि. रायगड",
+    registrationNumber: "एफ/३३५३७/ठाणे",
+    receiptBlessing: "।। कुलस्वामिनी प्रसन्न ।।",
+    receiptTagline1: "नरविर तानाजी मालुसरे पुण्यतिथी उत्सव",
+    receiptTagline2: "कुलस्वामीनीची सत्यनारायणाची महापूजा मालुसरे परिवार",
+  };
   const org = await db.organization.upsert({
     where: { shortName: "NTMP" },
-    update: { nameMr: "नरवीर तानाजी मालुसरे प्रतिष्ठान" },
+    update: { ...receiptBranding },
     create: {
       name: "Narveer Tanaji Malusare Pratishthan",
-      nameMr: "नरवीर तानाजी मालुसरे प्रतिष्ठान",
+      ...receiptBranding,
       shortName: "NTMP",
       address: "Kharabwadi",
       city: "Kharabwadi",
@@ -54,6 +62,18 @@ export async function seed(): Promise<void> {
     });
   } catch {
     // logo is optional
+  }
+  // 2c. Receipt deity emblem (right-hand circle on the printed receipt).
+  try {
+    const deity = await readFile(path.join(process.cwd(), "deity.png"));
+    await db.organization.update({
+      where: { id: org.id },
+      data: {
+        receiptImageDataUri: `data:image/png;base64,${deity.toString("base64")}`,
+      },
+    });
+  } catch {
+    // deity image is optional
   }
 
   // 3. Provision all per-org defaults (permissions, roles, types, statuses,
