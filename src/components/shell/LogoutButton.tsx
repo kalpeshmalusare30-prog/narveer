@@ -18,3 +18,21 @@ export function LogoutButton() {
     </form>
   );
 }
+
+/** Compact icon-only logout for the mobile top bar (always visible in the
+ *  installed app, where there is no browser UI to clear the session). */
+export function LogoutIconButton() {
+  const t = useTranslations("auth");
+  return (
+    <form action={logoutAction}>
+      <button
+        type="submit"
+        aria-label={t("logout")}
+        title={t("logout")}
+        className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+      >
+        <LogOut className="h-5 w-5" />
+      </button>
+    </form>
+  );
+}

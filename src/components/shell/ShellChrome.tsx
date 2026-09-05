@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 import { Nav } from "./Nav";
 import { Branding } from "./Branding";
 import { LocaleToggle } from "./LocaleToggle";
-import { LogoutButton } from "./LogoutButton";
+import { LogoutButton, LogoutIconButton } from "./LogoutButton";
 import { SearchBox } from "./SearchBox";
 import { NotificationBell } from "./NotificationBell";
 
@@ -91,6 +91,7 @@ export function ShellChrome({
           <Branding name={orgName} logoUrl={logoUrl} />
         </div>
         {showBell && <NotificationBell count={notifCount} />}
+        <LogoutIconButton />
       </div>
 
       {/* Desktop sidebar */}
@@ -105,8 +106,8 @@ export function ShellChrome({
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={close}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl">
-            <div className="flex justify-end p-2">
+          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-2xl">
+            <div className="flex shrink-0 justify-end p-2">
               <button
                 type="button"
                 onClick={close}
@@ -116,7 +117,7 @@ export function ShellChrome({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {sidebar}
+            <div className="min-h-0 flex-1">{sidebar}</div>
           </aside>
         </div>
       )}
