@@ -82,6 +82,7 @@
     "administration": "Administration",
     "dashboard": "Dashboard",
     "members": "Members",
+    "muster": "Muster",
     "settings": "Settings",
     "users": "Users",
     "roles": "Roles",
@@ -348,6 +349,35 @@
     "unpaid": "Unpaid",
     "remind": "Remind",
     "thanks": "Thanks"
+  },
+  "muster": {
+    "title": "Member Muster",
+    "subtitle": "One register for everyone — edit details and enter vargani totals directly.",
+    "search": "Search name, ID or mobile",
+    "showInactive": "Show inactive",
+    "addName": "New member name",
+    "addMobile": "Mobile",
+    "add": "Add",
+    "export": "Export Excel",
+    "deactivate": "Deactivate",
+    "restore": "Restore",
+    "confirmDeactivate": "Mark this member inactive? Their payments, receipts and history are kept and they can be restored later.",
+    "receiptSaved": "Receipt {number} created",
+    "membersCount": "{count} members",
+    "totalPending": "Total Pending",
+    "noFee": "No fee assigned",
+    "inactive": "Inactive",
+    "errors": {
+      "INVALID_AMOUNT": "Enter a valid amount",
+      "LOWER_THAN_PAID": "Entered amount is less than already paid — void the receipt from Payments instead",
+      "EXCEEDS_FEE": "More than this year's vargani — record extra via Payments",
+      "WAIVED": "This year's vargani is waived for this member",
+      "NO_PAYMENT_MODE": "No active cash payment mode is configured",
+      "NOT_FOUND": "Record not found",
+      "FORBIDDEN": "You don't have permission to do this",
+      "NAME_REQUIRED": "Name is required",
+      "SAVE_FAILED": "Could not save — please try again"
+    }
   },
   "settings": {
     "title": "Settings",

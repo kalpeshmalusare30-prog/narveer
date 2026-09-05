@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import {
   LayoutDashboard,
   Users,
+  ClipboardList,
   CalendarRange,
   CalendarDays,
   Clock,
@@ -47,6 +48,7 @@ const GROUPS: NavGroup[] = [
     titleKey: "membersGroup",
     items: [
       { href: "/members", labelKey: "members", icon: Users, permission: "member.view" },
+      { href: "/muster", labelKey: "muster", icon: ClipboardList, permission: "member.view" },
     ],
   },
   {
