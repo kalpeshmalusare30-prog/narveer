@@ -237,6 +237,7 @@ export async function musterQuickAddAction(input: {
             fullName: final.fullName,
             fullNameEn: final.fullNameEn,
             mobile: final.mobile,
+            whatsappNumber: final.whatsappNumber,
             isActive: final.isActive,
             cells: {},
           },

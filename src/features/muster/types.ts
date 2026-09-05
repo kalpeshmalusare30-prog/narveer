@@ -27,6 +27,7 @@ export type MusterMember = {
   fullName: string;
   fullNameEn: string | null;
   mobile: string | null;
+  whatsappNumber: string | null;
   isActive: boolean;
   /** key = financialYearId */
   cells: Record<string, MusterCell>;

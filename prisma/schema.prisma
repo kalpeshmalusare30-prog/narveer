@@ -12,6 +12,7 @@ datasource db {
 model Organization {
   id                   String   @id @default(cuid())
   name                 String
+  nameMr               String?
   shortName            String
   logoRef              String?
   logoDataUri          String?  @db.Text

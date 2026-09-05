@@ -5,8 +5,10 @@ export const dynamic = "force-dynamic";
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const f = new URL(request.url).searchParams.get("filter");
+    const filter = f === "pending" || f === "complete" ? f : "all";
     const data = await getMusterData();
 
     const headers = [
@@ -24,7 +26,7 @@ export async function GET() {
       "Total Pending",
     ];
 
-    const rows: Cell[][] = data.members.map((m) => {
+    const built = data.members.map((m) => {
       let totalPaid = 0;
       let totalPending = 0;
       const yearCells: Cell[] = [];
@@ -38,7 +40,7 @@ export async function GET() {
           yearCells.push("", "", "");
         }
       }
-      return [
+      const row: Cell[] = [
         m.memberCode,
         m.fullName,
         m.fullNameEn ?? "",
@@ -48,14 +50,27 @@ export async function GET() {
         r2(totalPaid),
         r2(totalPending),
       ];
+      return { row, totalPending: r2(totalPending) };
     });
 
-    const buffer = await toXlsx(headers, rows, "Muster");
+    const rows: Cell[][] = built
+      .filter((b) =>
+        filter === "pending"
+          ? b.totalPending > 0
+          : filter === "complete"
+            ? b.totalPending === 0
+            : true,
+      )
+      .map((b) => b.row);
+
+    const sheet =
+      filter === "pending" ? "Pending" : filter === "complete" ? "Paid" : "Muster";
+    const buffer = await toXlsx(headers, rows, sheet);
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="muster.xlsx"`,
+        "Content-Disposition": `attachment; filename="muster-${filter}.xlsx"`,
       },
     });
   } catch {

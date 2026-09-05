@@ -6,32 +6,11 @@ import { withAction } from "@/lib/rbac/guard";
  * Free "click-to-send" WhatsApp support. Instead of the paid Cloud API, we build
  * official wa.me click-to-chat links that open WhatsApp (web/app) with the message
  * pre-filled to the member — the admin taps Send. No API, no fees, no ban risk.
+ *
+ * The pure link/template helpers live in ./wa-utils (client-safe) and are
+ * re-exported here for existing server-side importers.
  */
-
-/** Normalise a stored mobile into a wa.me phone (digits only, +91 default for India). */
-export function normalizeWaNumber(raw?: string | null): string | null {
-  if (!raw) return null;
-  const first = raw.split(/[/,;]/)[0] ?? "";
-  let d = first.replace(/\D/g, "").replace(/^0+/, "");
-  if (!d) return null;
-  if (d.length === 10) d = "91" + d; // bare Indian mobile
-  if (d.length < 11 || d.length > 15) return null;
-  return d;
-}
-
-/** Build a wa.me click-to-chat URL with a pre-filled message. */
-export function waLink(number: string, text: string): string {
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-}
-
-/** Fill {{placeholders}} from vars; strip any that are left unfilled. */
-export function fillTemplate(body: string, vars: Record<string, string>): string {
-  let out = body;
-  for (const [k, v] of Object.entries(vars)) {
-    out = out.split(`{{${k}}}`).join(v);
-  }
-  return out.replace(/\{\{[^}]*\}\}/g, "").replace(/[ \t]{2,}/g, " ").trim();
-}
+export { normalizeWaNumber, waLink, fillTemplate } from "./wa-utils";
 
 export type WaClickContext = {
   orgName: string;
@@ -46,7 +25,7 @@ export async function getWaClickContext(): Promise<WaClickContext> {
     const [org, templates] = await Promise.all([
       rawDb.organization.findUnique({
         where: { id: ctx.organizationId },
-        select: { name: true, contactNumber: true },
+        select: { name: true, nameMr: true, contactNumber: true },
       }),
       db.whatsAppTemplate.findMany({
         where: { type: { in: ["reminder", "thankyou"] }, isActive: true },
@@ -54,7 +33,8 @@ export async function getWaClickContext(): Promise<WaClickContext> {
     ]);
     const body = (t: string) => templates.find((x) => x.type === t)?.body ?? "";
     return {
-      orgName: org?.name ?? "",
+      // Messages are Marathi-first, so prefer the Marathi organization name.
+      orgName: org?.nameMr?.trim() || org?.name || "",
       contactNumber: org?.contactNumber ?? "",
       reminderBody:
         body("reminder") ||

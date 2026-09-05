@@ -26,9 +26,10 @@ export async function seed(): Promise<void> {
   // 2. Initial organization: Narveer Tanaji Malusare Pratishthan
   const org = await db.organization.upsert({
     where: { shortName: "NTMP" },
-    update: {},
+    update: { nameMr: "नरवीर तानाजी मालुसरे प्रतिष्ठान" },
     create: {
       name: "Narveer Tanaji Malusare Pratishthan",
+      nameMr: "नरवीर तानाजी मालुसरे प्रतिष्ठान",
       shortName: "NTMP",
       address: "Kharabwadi",
       city: "Kharabwadi",

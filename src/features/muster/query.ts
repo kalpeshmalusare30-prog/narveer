@@ -22,6 +22,7 @@ export async function getMusterData(): Promise<MusterData> {
         fullName: true,
         fullNameEn: true,
         mobile: true,
+        whatsappNumber: true,
         isActive: true,
       },
     });
@@ -71,6 +72,7 @@ export async function getMusterData(): Promise<MusterData> {
         fullName: m.fullName,
         fullNameEn: m.fullNameEn,
         mobile: m.mobile,
+        whatsappNumber: m.whatsappNumber,
         isActive: m.isActive,
         cells: cellsByMember[m.id] ?? {},
       })),

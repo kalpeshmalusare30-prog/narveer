@@ -127,7 +127,7 @@ export async function sendPendingReminder(memberId: string) {
       "नमस्कार {{memberName}}, आपली थकबाकी ₹{{totalPending}} आहे. {{organizationName}}";
     const content = renderTemplate(body, {
       memberName: member.fullName,
-      organizationName: org?.name ?? "",
+      organizationName: org?.nameMr?.trim() || org?.name || "",
       financialYear: pendingYears.join(", "),
       pendingAmount: formatINR(total.toString()),
       totalPending: formatINR(total.toString()),
@@ -164,7 +164,7 @@ export async function sendPaymentConfirmation(paymentId: string) {
       "नमस्कार {{memberName}}, ₹{{amount}} जमा झाली. पावती {{receiptNumber}}. {{organizationName}}";
     const content = renderTemplate(body, {
       memberName: payment.member.fullName,
-      organizationName: org?.name ?? "",
+      organizationName: org?.nameMr?.trim() || org?.name || "",
       financialYear: years,
       amount: formatINR(payment.amount.toString()),
       receiptNumber: payment.receipt?.receiptNumber ?? "",
@@ -197,7 +197,7 @@ export async function shareReceipt(receiptId: string) {
       "नमस्कार {{memberName}}, पावती {{receiptNumber}} ({{amount}}). {{organizationName}}";
     const content = renderTemplate(body, {
       memberName: receipt.member.fullName,
-      organizationName: org?.name ?? "",
+      organizationName: org?.nameMr?.trim() || org?.name || "",
       receiptNumber: receipt.receiptNumber,
       amount: formatINR(receipt.payment.amount.toString()),
     });
@@ -242,7 +242,7 @@ export async function sendThankYou(memberId: string) {
       "नमस्कार {{memberName}}, आपल्या सहकार्याबद्दल धन्यवाद. {{organizationName}}";
     const content = renderTemplate(body, {
       memberName: member.fullName,
-      organizationName: org?.name ?? "",
+      organizationName: org?.nameMr?.trim() || org?.name || "",
       contactNumber: org?.contactNumber ?? "",
     });
     return recordAndSend(ctx, {

@@ -61,6 +61,13 @@ test("muster register: grid, quick add, vargani entry, deactivate/restore", asyn
   await expect(cell).toContainText("₹1,000.00");
   await expect(cell).toHaveClass(/bg-emerald/);
 
+  // WhatsApp click-to-send: fully paid member gets a thank-you wa.me link
+  // built from their mobile (+91 prefixed).
+  await expect(page.getByTestId(`muster-wa-${code}`)).toHaveAttribute(
+    "href",
+    /wa\.me\/919876512345\?text=/,
+  );
+
   // (d) deactivate → row leaves the active view
   page.once("dialog", (dialog) => void dialog.accept());
   await page.getByTestId(`muster-deactivate-${code}`).click();

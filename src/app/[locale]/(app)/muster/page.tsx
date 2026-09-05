@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth/session";
 import { getMusterData } from "@/features/muster/query";
+import { getWaClickContext } from "@/features/whatsapp/click-to-send";
 import { PageHeader } from "@/components/ui";
 import { MusterGrid } from "@/features/muster/components/MusterGrid";
 
@@ -27,8 +28,10 @@ export default async function MusterPage({
     deactivate: !!user!.permissions.includes("member.void"),
   };
   const canViewFees = !!user!.permissions.includes("fee.view");
+  const canSend = !!user!.permissions.includes("whatsapp.send");
 
   const data = await getMusterData();
+  const wa = canSend ? await getWaClickContext() : null;
 
   return (
     <div>
@@ -38,6 +41,7 @@ export default async function MusterPage({
         locale={locale}
         perms={perms}
         canViewFees={canViewFees}
+        wa={wa}
       />
     </div>
   );

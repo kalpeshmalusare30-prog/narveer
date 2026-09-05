@@ -2,11 +2,17 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Download, Pencil, Plus } from "lucide-react";
+import { Download, MessageCircle, Pencil, Plus, UserX } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Badge, Button, Input, StatusBadge } from "@/components/ui";
 import { formatINR } from "@/lib/money/money";
 import { memberName } from "@/features/members/name";
+import {
+  normalizeWaNumber,
+  waLink,
+  fillTemplate,
+} from "@/features/whatsapp/wa-utils";
+import type { WaClickContext } from "@/features/whatsapp/click-to-send";
 import {
   musterSetPaidAction,
   musterUpdateMemberAction,
@@ -270,6 +276,7 @@ export function MusterGrid({
   locale,
   perms,
   canViewFees,
+  wa,
 }: {
   data: MusterData;
   locale: string;
@@ -280,6 +287,7 @@ export function MusterGrid({
     deactivate: boolean;
   };
   canViewFees: boolean;
+  wa: WaClickContext | null;
 }) {
   const t = useTranslations("muster");
   const tm = useTranslations("members");
@@ -454,14 +462,35 @@ export function MusterGrid({
         <span className="text-sm text-slate-500">
           {t("membersCount", { count: visible.length })}
         </span>
-        <a
-          data-testid="muster-export"
-          href={`${pfx}/muster/export`}
-          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        >
-          <Download className="h-3.5 w-3.5" />
-          {t("export")}
-        </a>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <Download className="h-3.5 w-3.5" />
+            {t("export")}
+          </span>
+          <div
+            data-testid="muster-export"
+            className="inline-flex overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800"
+          >
+            <a
+              href={`${pfx}/muster/export?filter=all`}
+              className="inline-flex h-8 items-center px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              {t("exportAll")}
+            </a>
+            <a
+              href={`${pfx}/muster/export?filter=pending`}
+              className="inline-flex h-8 items-center border-l border-slate-200 px-3 text-xs font-medium text-rose-700 transition hover:bg-rose-50 dark:border-slate-600 dark:text-rose-400 dark:hover:bg-slate-700"
+            >
+              {t("exportPending")}
+            </a>
+            <a
+              href={`${pfx}/muster/export?filter=complete`}
+              className="inline-flex h-8 items-center border-l border-slate-200 px-3 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-slate-600 dark:text-emerald-400 dark:hover:bg-slate-700"
+            >
+              {t("exportComplete")}
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* register */}
@@ -614,15 +643,49 @@ export function MusterGrid({
                       >
                         {tc("view")}
                       </Link>
+                      {(() => {
+                        const waNum = wa
+                          ? normalizeWaNumber(m.whatsappNumber || m.mobile)
+                          : null;
+                        if (!waNum || !wa) return null;
+                        const unpaid = rowPending > 0;
+                        const text = unpaid
+                          ? fillTemplate(wa.reminderBody, {
+                              memberName: m.fullName,
+                              organizationName: wa.orgName,
+                              totalPending: formatINR(rowPending),
+                              pendingAmount: formatINR(rowPending),
+                              contactNumber: wa.contactNumber,
+                            })
+                          : fillTemplate(wa.thankyouBody, {
+                              memberName: m.fullName,
+                              organizationName: wa.orgName,
+                              contactNumber: wa.contactNumber,
+                            });
+                        return (
+                          <a
+                            href={waLink(waNum, text)}
+                            target="_blank"
+                            rel="noreferrer"
+                            data-testid={`muster-wa-${m.memberCode}`}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            {unpaid ? tm("remind") : tm("thanks")}
+                          </a>
+                        );
+                      })()}
                       {perms.deactivate &&
                         (m.isActive ? (
                           <button
                             type="button"
                             data-testid={`muster-deactivate-${m.memberCode}`}
                             onClick={() => void deactivate(m)}
-                            className="text-xs font-medium text-rose-600 hover:underline"
+                            title={t("deactivate")}
+                            aria-label={t("deactivate")}
+                            className="text-slate-300 transition hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400"
                           >
-                            {t("deactivate")}
+                            <UserX className="h-4 w-4" />
                           </button>
                         ) : (
                           <button
