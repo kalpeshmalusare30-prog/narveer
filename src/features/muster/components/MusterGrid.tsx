@@ -34,9 +34,10 @@ const CELL_INPUT =
   "rounded-lg border border-indigo-300 bg-white px-2 py-1 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-indigo-500/50 dark:bg-slate-800 dark:text-slate-100";
 
 const TD_BASE = "border-b border-slate-100 px-3 py-2 dark:border-slate-700/60";
-// First two columns stay visible during horizontal scroll.
-const STICKY_C1 = `sticky left-0 z-10 w-24 min-w-24 bg-white dark:bg-slate-800 ${TD_BASE}`;
-const STICKY_C2 = `sticky left-24 z-10 w-56 min-w-56 max-w-56 bg-white dark:bg-slate-800 ${TD_BASE}`;
+// Sticky identity columns. On phones only the (narrower) name column sticks —
+// pinning both code + name would cover nearly the whole viewport.
+const STICKY_C1 = `sm:sticky sm:left-0 z-10 w-20 min-w-20 sm:w-24 sm:min-w-24 bg-white dark:bg-slate-800 ${TD_BASE}`;
+const STICKY_C2 = `sticky left-0 sm:left-24 z-10 w-36 min-w-36 max-w-36 sm:w-56 sm:min-w-56 sm:max-w-56 bg-white dark:bg-slate-800 ${TD_BASE}`;
 const TH_BASE =
   "sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900";
 const TF_BASE =
@@ -297,6 +298,8 @@ export function MusterGrid({
   const [members, setMembers] = useState<MusterMember[]>(data.members);
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  // Year scope for the Excel downloads ("" = all years).
+  const [exportYear, setExportYear] = useState("");
 
   const [toast, setToast] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -462,29 +465,42 @@ export function MusterGrid({
         <span className="text-sm text-slate-500">
           {t("membersCount", { count: visible.length })}
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
             <Download className="h-3.5 w-3.5" />
             {t("export")}
           </span>
+          <select
+            data-testid="muster-export-year"
+            value={exportYear}
+            onChange={(e) => setExportYear(e.target.value)}
+            className="h-8 rounded-xl border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <option value="">{t("yearAll")}</option>
+            {data.years.map((y) => (
+              <option key={y.id} value={y.id}>
+                {y.label}
+              </option>
+            ))}
+          </select>
           <div
             data-testid="muster-export"
             className="inline-flex overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800"
           >
             <a
-              href={`${pfx}/muster/export?filter=all`}
+              href={`${pfx}/muster/export?filter=all${exportYear ? `&year=${exportYear}` : ""}`}
               className="inline-flex h-8 items-center px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               {t("exportAll")}
             </a>
             <a
-              href={`${pfx}/muster/export?filter=pending`}
+              href={`${pfx}/muster/export?filter=pending${exportYear ? `&year=${exportYear}` : ""}`}
               className="inline-flex h-8 items-center border-l border-slate-200 px-3 text-xs font-medium text-rose-700 transition hover:bg-rose-50 dark:border-slate-600 dark:text-rose-400 dark:hover:bg-slate-700"
             >
               {t("exportPending")}
             </a>
             <a
-              href={`${pfx}/muster/export?filter=complete`}
+              href={`${pfx}/muster/export?filter=complete${exportYear ? `&year=${exportYear}` : ""}`}
               className="inline-flex h-8 items-center border-l border-slate-200 px-3 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-slate-600 dark:text-emerald-400 dark:hover:bg-slate-700"
             >
               {t("exportComplete")}
@@ -498,10 +514,10 @@ export function MusterGrid({
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
-              <th className={`${TH_BASE} left-0 z-30 w-24 min-w-24`}>
+              <th className={`${TH_BASE} z-30 w-20 min-w-20 sm:left-0 sm:w-24 sm:min-w-24`}>
                 {tm("memberCode")}
               </th>
-              <th className={`${TH_BASE} left-24 z-30 w-56 min-w-56`}>
+              <th className={`${TH_BASE} left-0 z-30 w-36 min-w-36 sm:left-24 sm:w-56 sm:min-w-56`}>
                 {tm("fullName")}
               </th>
               <th className={`${TH_BASE} z-20`}>{tm("mobile")}</th>
@@ -705,8 +721,8 @@ export function MusterGrid({
           </tbody>
           <tfoot>
             <tr>
-              <td className={`${TF_BASE} left-0 z-30`} />
-              <td className={`${TF_BASE} left-24 z-30`}>
+              <td className={`${TF_BASE} z-30 sm:left-0`} />
+              <td className={`${TF_BASE} left-0 z-30 sm:left-24`}>
                 {t("membersCount", { count: visible.length })}
               </td>
               <td className={`${TF_BASE} z-20`} />

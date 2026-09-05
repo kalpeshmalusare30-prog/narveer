@@ -359,6 +359,7 @@
     "addMobile": "Mobile",
     "add": "Add",
     "export": "Export Excel",
+    "yearAll": "All years",
     "exportAll": "All",
     "exportPending": "Pending",
     "exportComplete": "Paid",
