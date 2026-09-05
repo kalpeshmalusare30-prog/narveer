@@ -42,8 +42,13 @@ export default async function MembersPage({
   });
   // Members with outstanding dues (everyone else is fully paid up).
   const pendingByMember = canViewFees
-    ? new Map((await listPendingDues()).map((d) => [d.memberId, d.totalPending]))
-    : new Map<string, string>();
+    ? new Map(
+        (await listPendingDues()).map((d) => [
+          d.memberId,
+          { totalPending: d.totalPending, yearLabels: d.yearLabels },
+        ]),
+      )
+    : new Map<string, { totalPending: string; yearLabels: string[] }>();
   // Free wa.me click-to-send context (org name + reminder/thank-you templates).
   const wa = canSend ? await getWaClickContext() : null;
   const { statuses, types } = await getMemberRefData();
@@ -100,7 +105,8 @@ export default async function MembersPage({
             </thead>
             <tbody>
               {rows.map((m) => {
-                const unpaid = pendingByMember.has(m.id);
+                const pending = pendingByMember.get(m.id);
+                const unpaid = !!pending;
                 const waNum = wa
                   ? normalizeWaNumber(m.whatsappNumber || m.mobile)
                   : null;
@@ -112,11 +118,12 @@ export default async function MembersPage({
                           ? fillTemplate(wa.reminderBody, {
                               memberName: m.fullName,
                               organizationName: wa.orgName,
+                              financialYear: pending?.yearLabels.join(", ") ?? "",
                               totalPending: formatINR(
-                                pendingByMember.get(m.id) ?? "0",
+                                pending?.totalPending ?? "0",
                               ),
                               pendingAmount: formatINR(
-                                pendingByMember.get(m.id) ?? "0",
+                                pending?.totalPending ?? "0",
                               ),
                               contactNumber: wa.contactNumber,
                             })

@@ -187,6 +187,8 @@ export type PendingDuesRow = {
   memberCode: string;
   mobile: string | null;
   pendingYears: number;
+  /** Labels of the years with dues, oldest first (for reminder messages). */
+  yearLabels: string[];
   totalPending: string;
 };
 
@@ -198,7 +200,11 @@ export async function listPendingDues(): Promise<PendingDuesRow[]> {
     const paid = await paidByFee(fees.map((f) => f.id));
     const byMember: Record<
       string,
-      { m: (typeof fees)[number]["member"]; years: number; total: Prisma.Decimal }
+      {
+        m: (typeof fees)[number]["member"];
+        years: { label: string; start: Date }[];
+        total: Prisma.Decimal;
+      }
     > = {};
     for (const f of fees) {
       const p = paid[f.id] ?? new Prisma.Decimal(0);
@@ -208,10 +214,13 @@ export async function listPendingDues(): Promise<PendingDuesRow[]> {
         byMember[f.memberId] ??
         (byMember[f.memberId] = {
           m: f.member,
-          years: 0,
+          years: [],
           total: new Prisma.Decimal(0),
         });
-      entry.years += 1;
+      entry.years.push({
+        label: f.financialYear.label,
+        start: f.financialYear.startDate,
+      });
       entry.total = entry.total.plus(pend);
     }
     return Object.values(byMember)
@@ -221,7 +230,10 @@ export async function listPendingDues(): Promise<PendingDuesRow[]> {
         memberNameEn: e.m.fullNameEn,
         memberCode: e.m.memberCode,
         mobile: e.m.mobile,
-        pendingYears: e.years,
+        pendingYears: e.years.length,
+        yearLabels: e.years
+          .sort((a, b) => a.start.getTime() - b.start.getTime())
+          .map((y) => y.label),
         totalPending: e.total.toString(),
       }))
       .sort((a, b) =>

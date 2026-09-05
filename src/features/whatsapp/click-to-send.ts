@@ -38,7 +38,7 @@ export async function getWaClickContext(): Promise<WaClickContext> {
       contactNumber: org?.contactNumber ?? "",
       reminderBody:
         body("reminder") ||
-        "नमस्कार {{memberName}}, आपली सभासद वर्गणी ₹{{totalPending}} बाकी आहे. कृपया लवकर जमा करावी. धन्यवाद. {{organizationName}}",
+        "नमस्कार {{memberName}}, आपली {{financialYear}} ची सभासद वर्गणी ₹{{totalPending}} बाकी आहे. कृपया लवकर जमा करावी. धन्यवाद. {{organizationName}}",
       thankyouBody:
         body("thankyou") ||
         "नमस्कार {{memberName}}, आपल्या सहकार्याबद्दल मनःपूर्वक धन्यवाद. 🙏 {{organizationName}}",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Download, MessageCircle, Pencil, Plus, UserX } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -42,6 +42,12 @@ const TH_BASE =
   "sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900";
 const TF_BASE =
   "sticky bottom-0 border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold tabular text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300";
+
+/** Search-normalize: NFC (Marathi IMEs emit mixed forms), strip invisible
+ *  joiners some keyboards insert, and lowercase. */
+const norm = (s: string) =>
+  s.normalize("NFC").replace(/[\u200B\u200C\u200D]/g, "").toLowerCase();
+const digitsOnly = (s: string) => s.replace(/\D/g, "");
 
 const CELL_TINT: Record<string, string> = {
   paid: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
@@ -315,17 +321,34 @@ export function MusterGrid({
   const [addErr, setAddErr] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
-  const q = search.trim().toLowerCase();
+  // Deferred so each keystroke stays snappy even on slow phones (the filter
+  // re-renders the whole register).
+  const deferredSearch = useDeferredValue(search);
+  const q = norm(deferredSearch.trim());
+  const qDigits = digitsOnly(deferredSearch);
   const visible = useMemo(
     () =>
       members.filter((m) => {
         if (!showInactive && !m.isActive) return false;
         if (!q) return true;
-        return [m.memberCode, m.fullName, m.fullNameEn ?? "", m.mobile ?? ""].some(
-          (s) => s.toLowerCase().includes(q),
-        );
+        const texts = [
+          m.memberCode,
+          m.fullName,
+          m.fullNameEn ?? "",
+          m.mobile ?? "",
+          m.whatsappNumber ?? "",
+        ];
+        if (texts.some((s) => norm(s).includes(q))) return true;
+        // Phone search tolerant of spaces, dashes and +91 prefixes.
+        if (qDigits.length >= 3) {
+          const md = digitsOnly(m.mobile ?? "") + " " + digitsOnly(m.whatsappNumber ?? "");
+          if (md.includes(qDigits) || md.includes(qDigits.replace(/^91/, ""))) {
+            return true;
+          }
+        }
+        return false;
       }),
-    [members, q, showInactive],
+    [members, q, qDigits, showInactive],
   );
 
   const totals = useMemo(() => {
@@ -681,10 +704,18 @@ export function MusterGrid({
                           : null;
                         if (!waNum || !wa) return null;
                         const unpaid = rowPending > 0;
+                        // Which years are due, oldest first — templates name
+                        // them via {{financialYear}}.
+                        const dueYears = data.years
+                          .filter((y) => Number(m.cells[y.id]?.pending ?? 0) > 0)
+                          .map((y) => y.label)
+                          .reverse()
+                          .join(", ");
                         const text = unpaid
                           ? fillTemplate(wa.reminderBody, {
                               memberName: m.fullName,
                               organizationName: wa.orgName,
+                              financialYear: dueYears,
                               totalPending: formatINR(rowPending),
                               pendingAmount: formatINR(rowPending),
                               contactNumber: wa.contactNumber,
