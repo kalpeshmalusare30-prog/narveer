@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ऑफलाइन • Offline</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7f3ef;
+        color: #1c1917;
+        font-family: ui-sans-serif, system-ui, "Noto Sans Devanagari", sans-serif;
+        text-align: center;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #eae3dd;
+        border-radius: 16px;
+        padding: 32px 28px;
+        max-width: 320px;
+        box-shadow: 0 6px 16px -10px rgba(28, 25, 23, 0.12);
+      }
+      h1 { font-size: 20px; margin: 0 0 8px; }
+      p { color: #7c736c; font-size: 14px; margin: 0 0 20px; }
+      button {
+        background: #e0400f;
+        color: #fff;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>इंटरनेट कनेक्शन नाही</h1>
+      <p>No internet connection. कनेक्शन तपासून पुन्हा प्रयत्न करा.</p>
+      <button onclick="location.reload()">पुन्हा प्रयत्न करा • Retry</button>
+    </div>
+  </body>
+</html>
