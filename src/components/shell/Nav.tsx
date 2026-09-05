@@ -33,6 +33,8 @@ type NavItem = {
   labelKey: string;
   icon: LucideIcon;
   permission?: string;
+  /** Visible when the user holds ANY of these (e.g. the Settings hub). */
+  anyPermission?: string[];
   superAdmin?: boolean;
 };
 type NavGroup = { titleKey: string; items: NavItem[] };
@@ -90,7 +92,15 @@ const GROUPS: NavGroup[] = [
       { href: "/notifications", labelKey: "notifications", icon: Bell, permission: "notification.view" },
       { href: "/audit", labelKey: "auditLogs", icon: History, permission: "audit.view" },
       { href: "/import", labelKey: "import", icon: Upload, permission: "data.import" },
-      { href: "/settings", labelKey: "settings", icon: Settings, permission: "settings.membership_type.manage" },
+      { href: "/settings", labelKey: "settings", icon: Settings, anyPermission: [
+        "settings.org.manage",
+        "settings.membership_type.manage",
+        "settings.member_status.manage",
+        "settings.payment_mode.manage",
+        "settings.income_category.manage",
+        "settings.expense_category.manage",
+        "settings.whatsapp.manage",
+      ] },
       { href: "/setup", labelKey: "setup", icon: Wrench, permission: "settings.org.manage" },
       { href: "/organizations", labelKey: "organizations", icon: Building2, superAdmin: true },
     ],
@@ -111,6 +121,7 @@ export function Nav({
 
   const visible = (i: NavItem) => {
     if (i.superAdmin) return isSuperAdmin;
+    if (i.anyPermission) return i.anyPermission.some((p) => permissions.includes(p));
     if (i.permission) return permissions.includes(i.permission);
     return true;
   };
