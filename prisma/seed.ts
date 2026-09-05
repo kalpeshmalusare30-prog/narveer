@@ -29,7 +29,7 @@ export async function seed(): Promise<void> {
     addressMr: "मु. पिंपळवाडी (खरबवाडी), ता. महाड, जि. रायगड",
     registrationNumber: "एफ/३३५३७/ठाणे",
     receiptBlessing: "।। कुलस्वामिनी प्रसन्न ।।",
-    receiptTagline1: "नरविर तानाजी मालुसरे पुण्यतिथी उत्सव",
+    receiptTagline1: "नरवीर तानाजी मालुसरे पुण्यतिथी उत्सव",
     receiptTagline2: "कुलस्वामीनीची सत्यनारायणाची महापूजा मालुसरे परिवार",
   };
   const org = await db.organization.upsert({
