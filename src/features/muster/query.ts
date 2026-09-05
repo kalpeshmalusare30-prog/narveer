@@ -11,8 +11,10 @@ import type { MusterCell, MusterData } from "./types";
  */
 export async function getMusterData(): Promise<MusterData> {
   return withAction({ permission: "member.view" }, async (ctx) => {
+    // Newest year first — the current year's vargani is what the register
+    // is used for day-to-day; older years follow to the right.
     const years = await db.financialYear.findMany({
-      orderBy: { startDate: "asc" },
+      orderBy: { startDate: "desc" },
     });
     const members = await db.member.findMany({
       orderBy: { memberCode: "asc" },
