@@ -17,3 +17,9 @@ build
 next-env.d.ts
 .superpowers
 .claude
+
+# Android TWA wrapper: only the app definition + docs are versioned.
+# The generated project, gradle caches, keystore and its password stay local.
+/android-twa/*
+!/android-twa/twa-manifest.json
+!/android-twa/README.md

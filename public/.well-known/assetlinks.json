@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kaizeninfotech.narveer",
+      "sha256_cert_fingerprints": [
+        "62:17:CE:0F:FB:15:F6:08:4F:5B:AD:0F:57:46:D1:3D:B0:31:53:FC:8E:AB:BA:6F:6C:3F:5E:AF:85:2C:56:AA"
+      ]
+    }
+  }
+]
