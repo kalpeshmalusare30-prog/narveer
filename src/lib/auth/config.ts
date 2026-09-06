@@ -26,6 +26,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sa = u.isSuperAdmin;
         token.fullName = u.fullName;
         token.perms = await resolveUserPermissions(u.id);
+      } else if (token.uid) {
+        // Re-resolve permissions on every token refresh so role/permission
+        // changes take effect on the next request without forcing a re-login.
+        // On a transient DB error, keep the permissions already in the token.
+        try {
+          token.perms = await resolveUserPermissions(token.uid as string);
+        } catch {
+          // keep existing token.perms
+        }
       }
       return token;
     },
