@@ -1,4 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
+import { getSessionUser } from "@/lib/auth/session";
 import { listPaymentModes } from "@/features/settings/query";
 import { PageHeader, Badge } from "@/components/ui";
 import { AddPaymentModeForm } from "@/features/settings/components/AddPaymentModeForm";
@@ -11,6 +13,11 @@ export default async function PaymentModesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const me = await getSessionUser();
+  if (!me) redirect({ href: "/login", locale });
+  if (!me!.permissions.includes("settings.payment_mode.manage")) {
+    redirect({ href: "/settings", locale });
+  }
   const t = await getTranslations();
   const modes = await listPaymentModes();
 

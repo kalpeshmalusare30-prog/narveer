@@ -39,8 +39,6 @@ export const SYSTEM_ROLES: {
       "expense.void",
       "settings.income_category.manage",
       "settings.expense_category.manage",
-      "settings.payment_mode.manage",
-      "settings.whatsapp.manage",
       "report.view",
       "whatsapp.view",
       "whatsapp.send",
