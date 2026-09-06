@@ -45,12 +45,16 @@ export default async function NotificationsPage({
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-slate-800">{n.message}</div>
+                <div className="break-words text-sm text-slate-800">
+                  {n.message}
+                </div>
                 <div className="mt-0.5 text-xs text-slate-400">
                   {new Date(n.createdAt).toLocaleString("en-IN")}
                 </div>
               </div>
-              <Badge tone="slate">{n.type}</Badge>
+              <div className="shrink-0">
+                <Badge tone="slate">{n.type}</Badge>
+              </div>
             </div>
           ))}
         </Card>
